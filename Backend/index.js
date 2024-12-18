@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors'; // For handling cross-origin requests
 import eventRoutes from './routes/Event.routes.js'; // Import event routes
+import userRoute from"./routes/user.route.js";
 
 // Initialize express app
 const app = express();
@@ -50,7 +51,7 @@ app.use('/api/events', eventRoutes); // Update route prefix to '/api/events' for
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
-
+app.use("/user", userRoute);
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
