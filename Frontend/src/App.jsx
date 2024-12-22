@@ -5,8 +5,9 @@ import About from './Pages/About/About';
 import Contact from './Pages/Contact';
 import Layout from './Components/Layout';
 import LoginSignup from './Pages/LoginSignup';
-import AdminDashboard from './Pages/Dashbord/AdminDashboard';
-import OrganizerDashboard from './Pages/Dashbord/OrganizerDashboard'; 
+import AdminDashboard from './Pages/Landing/AdminDashboard';
+import OrganizerDashboard from './Pages/Landing/OrganizerDashboard';
+import UserDashboard from './Pages/Landing/UserDashboard'; 
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
           <Route path="/loginsignup" element={<LoginSignup />} />
           <Route path="/admindb" element={<AdminDashboard />} />
           <Route path="/orgdb" element={<OrganizerDashboard />} />
+          <Route path="/userdb" element={<UserDashboard />} />
         </Routes>
       </Layout>
     </Router>
