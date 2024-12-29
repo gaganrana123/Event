@@ -1,21 +1,25 @@
-// controllers/roleController.js
-import Role from '../model/role.schema.js'; // Adjust path to your schema
+import Role from '../model/role.schema.js';
 
-// Function to create a new role
+// Create a new role
 export const createRole = async (req, res) => {
   try {
     const { role_Name } = req.body;
-    const existingRole = await Role.findOne({ role_Name });
 
+    // Validate input
+    if (!role_Name || typeof role_Name !== 'string') {
+      return res.status(400).json({ message: "Role name is required and must be a string" });
+    }
+
+    // Check if the role already exists (case-insensitive)
+    const existingRole = await Role.findOne({ role_Name: new RegExp(`^${role_Name}$`, 'i') });
     if (existingRole) {
       return res.status(400).json({ message: "Role already exists" });
     }
 
-    const newRole = new Role({
-      role_Name,
-    });
-
+    // Save new role
+    const newRole = new Role({ role_Name });
     await newRole.save();
+
     res.status(201).json({ message: "Role created successfully", role: newRole });
   } catch (error) {
     console.error("Error creating role:", error);
@@ -23,10 +27,10 @@ export const createRole = async (req, res) => {
   }
 };
 
-// Function to fetch all roles
+// Fetch all roles
 export const getAllRoles = async (req, res) => {
   try {
-    const roles = await Role.find();
+    const roles = await Role.find().select('_id role_Name'); // Fetch only necessary fields
     res.status(200).json(roles);
   } catch (error) {
     console.error("Error fetching roles:", error);
@@ -34,17 +38,23 @@ export const getAllRoles = async (req, res) => {
   }
 };
 
-// Function to verify if a user has a certain role
+// Verify if a role exists
 export const verifyRole = async (req, res) => {
   try {
-    const { role_Name } = req.body; // Assuming the role is sent in the request body
-    const role = await Role.findOne({ role_Name });
+    const { role_Name } = req.body;
 
+    // Validate input
+    if (!role_Name || typeof role_Name !== 'string') {
+      return res.status(400).json({ message: "Role name is required and must be a string" });
+    }
+
+    // Check if the role exists
+    const role = await Role.findOne({ role_Name: new RegExp(`^${role_Name}$`, 'i') });
     if (!role) {
       return res.status(404).json({ message: "Role not found" });
     }
 
-    res.status(200).json({ message: `User has the ${role_Name} role` });
+    res.status(200).json({ message: `Role "${role_Name}" exists`, role });
   } catch (error) {
     console.error("Error verifying role:", error);
     res.status(500).json({ message: "Internal Server Error" });

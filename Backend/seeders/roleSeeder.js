@@ -1,24 +1,17 @@
-import Role from '../model/role.schema.js'; // Adjust the path as needed
+import Role from '../model/role.schema.js';
+
+const roles = ['Admin', 'User', 'Organizer'];
 
 const seedRoles = async () => {
-  const defaultRoles = [
-    { role_Name: 'Admin' },
-    { role_Name: 'User' },
-    { role_Name: 'Organizer' },
-  ];
-
-  try {
-    for (const role of defaultRoles) {
-      const existingRole = await Role.findOne({ role_Name: role.role_Name });
-      if (!existingRole) {
-        await Role.create(role);
-        console.log(`Role '${role.role_Name}' added to the database.`);
-      } else {
-        console.log(`Role '${role.role_Name}' already exists.`);
-      }
+  for (const roleName of roles) {
+    const existingRole = await Role.findOne({ role_Name: roleName });
+    if (existingRole) {
+      console.log(`Role '${roleName}' already exists.`);
+    } else {
+      const newRole = new Role({ role_Name: roleName });
+      await newRole.save();
+      console.log(`Role '${roleName}' created.`);
     }
-  } catch (error) {
-    console.error('Error seeding roles:', error);
   }
 };
 

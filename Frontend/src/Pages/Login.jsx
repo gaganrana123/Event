@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
+import api from "../utils/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,47 +10,74 @@ const Login = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = async (data) => {
-    const UserInfo = {
-      email: data.email,
-      password: data.password,
-    };
-    await axios
-      .post("http://localhost:4001/user/login", UserInfo)
-      .then((response) => {
-        const userRole = response.data.user.role; // role_Name from the backend
-        console.log(response.data);
-        if (response.data) {
-          alert("Logged in successfully!");
-          // Redirect based on role_Name
-          switch (userRole) {
-            case "Admin":
-              navigate("/admindb");
-              break;
-            case "Organizer":
-              navigate("/orgdb");
-              break;
-            case "User":
-              navigate("/userdb");
-              break;
-            default:
-              alert("Unknown role! Please contact support.");
-          }
-        }
-      })
-      .catch((error) => {
-        if (error.response) {
-          console.log(error);
-          alert("Error: " + error.response.data.message);
-        }
-      });
+  const checkAuthAndRedirect = () => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (token && role) {
+      switch (role) {
+        case "Admin":
+          return <Navigate to="/admindb" replace />;
+        case "Organizer":
+          return <Navigate to="/orgdb" replace />;
+        case "User":
+          return <Navigate to="/userdb" replace />;
+        default:
+          return null;
+      }
+    }
+    return null;
   };
 
+  const onSubmit = async (data) => {
+    try {
+      const loginData = {
+        email: data.email,
+        password: data.password,
+      };
+
+      const response = await api.post("/users/login", loginData);
+      console.log("Login Response:", response.data);
+
+      const { message, token, user } = response.data;
+
+      if (token && user) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("role", user.role);
+
+        if (user.role === "Admin") {
+          window.location.href = "/admindb";
+        } else if (user.role === "Organizer") {
+          window.location.href = "/orgdb";
+        } else if (user.role === "User") {
+          window.location.href = "/userdb";
+        } else {
+          alert("Invalid user role");
+        }
+      } else {
+        alert(message || "Login failed: Invalid response data");
+      }
+    } catch (error) {
+      console.error("Login Error:", error);
+
+      if (error.response?.data?.message) {
+        alert(`Error: ${error.response.data.message}`);
+      } else if (error.message) {
+        alert(`Error: ${error.message}`);
+      } else {
+        alert("An unknown error occurred. Please try again.");
+      }
+    }
+  };
+
+  const authRedirect = checkAuthAndRedirect();
+  if (authRedirect) return authRedirect;
+
   return (
-    <div className="min-h-scree flex justify-items-start bg-gray-100">
+    <div className="min-h-screen bg-gray-100 flex items-start justify-center pt-10">
       <div className="bg-white shadow-md rounded-lg w-96 p-6">
         <h1 className="text-lg font-bold text-center mb-4">Login</h1>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-1">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-1">
               Email

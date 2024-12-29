@@ -1,53 +1,42 @@
-import bcryptjs from 'bcryptjs';  // Import bcryptjs instead of bcrypt
-import User from '../model/user.schema.js'; // Import User schema
-import Role from '../model/role.schema.js'; // Import Role schema
+import User from '../model/user.schema.js';
+import bcryptjs from 'bcryptjs';
+import Role from '../model/role.schema.js';
+
+const users = [
+  { fullname: 'Admin', email: 'admin@example.com', password: 'admin123', role: 'Admin' },
+  { fullname: 'User', email: 'user@example.com', password: 'user123', role: 'User' },
+  { fullname: 'Organizer', email: 'organizer@example.com', password: 'organizer123', role: 'Organizer' }
+];
 
 const seedUsers = async () => {
-  try {
-    // Fetch Role IDs
-    const adminRole = await Role.findOne({ role_Name: 'Admin' });
-    const userRole = await Role.findOne({ role_Name: 'User' });
-    const organizerRole = await Role.findOne({ role_Name: 'Organizer' });
-
-    if (!adminRole || !userRole || !organizerRole) {
-      console.error('Roles are not seeded yet. Please seed roles first.');
-      return;
+  for (const userData of users) {
+    const { email, role } = userData;
+    
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      console.log(`User '${email}' already exists.`);
+    } else {
+      // Find the role by its name
+      const roleFound = await Role.findOne({ role_Name: role });
+      if (!roleFound) {
+        console.log(`Role '${role}' not found for user '${email}'.`);
+        continue; // Skip user creation if role is not found
+      }
+      
+      // Hash the password
+      const hashedPassword = await bcryptjs.hash(userData.password, 10);
+      
+      // Create the user
+      const newUser = new User({
+        fullname: userData.fullname,
+        email,
+        password: hashedPassword,
+        role: roleFound._id
+      });
+      
+      await newUser.save();
+      console.log(`User '${email}' created.`);
     }
-
-    // User data
-    const users = [
-      {
-        fullname: 'admin',
-        email: 'admin@example.com',
-        password: await bcryptjs.hash('admin123', 10), // Hash password using bcryptjs
-        role: adminRole._id,
-      },
-      {
-        fullname: 'user',
-        email: 'user@example.com',
-        password: await bcryptjs.hash('user123', 10), // Hash password using bcryptjs
-        role: userRole._id,
-      },
-      {
-        fullname: 'organizer',
-        email: 'organizer@example.com',
-        password: await bcryptjs.hash('organizer123', 10), // Hash password using bcryptjs
-        role: organizerRole._id,
-      },
-    ];
-
-    // Check if users already exist
-    const existingUsers = await User.find();
-    if (existingUsers.length > 0) {
-      console.log('Users already seeded.');
-      return;
-    }
-
-    // Seed users
-    await User.insertMany(users);
-    console.log('Users seeded successfully.');
-  } catch (error) {
-    console.error('Error seeding users:', error.message);
   }
 };
 

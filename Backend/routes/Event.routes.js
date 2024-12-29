@@ -3,16 +3,19 @@ import {
   createEvent,
   getEvents,
   getEventById,
+  getEventByIdName,
   updateEvent,
   deleteEvent,
 } from '../controller/Event.controller.js';
 
 const router = express.Router();
 
-router.post('/events', createEvent); // Route to create a new event
-router.get('/events', getEvents); // Route to get all events
-router.get('/events/:id', getEventById); // Route to get a specific event by ID
-router.put('/events/:id', updateEvent); // Route to update an event
-router.delete('/events/:id', deleteEvent); // Route to delete an event
+// Define routes
+router.post('/create', createEvent);        // POST /api/v1/events/create
+router.get('/', getEvents);                 // GET /api/v1/events
+router.get('/:id', getEventById);           // GET /api/v1/events/:id
+router.get('/:id/name', getEventByIdName);  // GET /api/v1/events/:id/name
+router.put('/update/:id', updateEvent);     // PUT /api/v1/events/update/:id
+router.delete('/delete/:id', deleteEvent);  // DELETE /api/v1/events/delete/:id
 
 export default router;

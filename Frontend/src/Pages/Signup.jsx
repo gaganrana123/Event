@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import api from '../utils/api';
 
 const Signup = ({ setActiveTab }) => {
   const {
@@ -9,24 +9,42 @@ const Signup = ({ setActiveTab }) => {
   } = useForm();
 
   const onSubmit = async (data) => {
-    const userInfo = {
-      fullname: data.fullname,
-      email: data.email,
-      password: data.password,
-      role: data.role,
-    };
-
     try {
-      const res = await axios.post("http://localhost:4001/user/signup", userInfo);
-      console.log(res.data);
-      if (res.data) {
-        alert("Signup successfully");
-        localStorage.setItem("Users", JSON.stringify(res.data.user));
+      // Prepare userInfo from form data
+      const userInfo = {
+        fullname: data.fullname,
+        email: data.email,
+        password: data.password,
+        role: data.role
+      };
+
+      // Make API request to sign up user
+      const response = await api.post('/users/signup', userInfo);
+
+      // Log response for debugging
+      console.log("Signup Response:", response.data);
+
+      const { message, user } = response.data;
+
+      if (user) {
+        // Show success message
+        alert(message || "Signup successful! Please login.");
+        
+        // Switch to login tab after successful signup
+        setActiveTab("login");
+      } else {
+        alert("Signup failed: Invalid response data");
       }
-    } catch (err) {
-      if (err.response) {
-        console.log(err);
-        alert("Error: " + err.response.data.message);
+    } catch (error) {
+      console.error("Signup Error:", error);
+      
+      // Improved error handling
+      if (error.response?.data?.message) {
+        alert(`Error: ${error.response.data.message}`);
+      } else if (error.message) {
+        alert(`Error: ${error.message}`);
+      } else {
+        alert("An unknown error occurred. Please try again.");
       }
     }
   };
