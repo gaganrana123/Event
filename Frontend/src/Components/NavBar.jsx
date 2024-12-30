@@ -2,21 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import eventA from "../assets/images/eventA.png";
 import { 
-  Search, 
-  Bell, 
-  User, 
-  LogOut, 
-  Settings, 
-  ChevronDown,
-  Sun,
-  Moon,
-  Plus,
-  Menu,
-  Home,
-  Calendar,
-  Phone,
-  Info,
-  Image
+  Search, Bell, User, LogOut, Settings, ChevronDown,
+  Sun, Moon, Plus, Menu, Home, Calendar, Phone, Info
 } from 'lucide-react';
 
 const NavBar = () => {
@@ -29,29 +16,30 @@ const NavBar = () => {
   const userRole = localStorage.getItem('role');
 
   const themeClasses = {
-    nav: isDarkMode ? 'bg-gray-800/90 border-gray-700' : 'bg-white/90 border-gray-200',
+    nav: `fixed w-full top-0 z-50 transition-all duration-300 ${
+      sticky 
+        ? (isDarkMode ? 'bg-gray-900/95' : 'bg-white/95') 
+        : (isDarkMode ? 'bg-gray-900' : 'bg-white')
+    } border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} backdrop-blur-lg`,
     text: isDarkMode ? 'text-gray-100' : 'text-gray-800',
     textMuted: isDarkMode ? 'text-gray-300' : 'text-gray-600',
-    button: isDarkMode ? 'bg-purple-600 hover:bg-purple-500' : 'bg-purple-500 hover:bg-purple-600',
-    input: isDarkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-white/50 border-gray-200',
-    card: isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+    button: `bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white transition-all duration-300`,
+    input: isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200',
+    card: isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
   };
 
   useEffect(() => {
-    const handleScroll = () => {
-      setSticky(window.scrollY > 0);
-    };
+    const handleScroll = () => setSticky(window.scrollY > 0);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isProfileOpen && !event.target.closest('.relative')) {
+      if (isProfileOpen && !event.target.closest('.profile-dropdown')) {
         setIsProfileOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isProfileOpen]);
@@ -62,75 +50,57 @@ const NavBar = () => {
     window.location.href = '/loginsignup';
   };
 
-  const navItems = (
-    <>
-      <li>
-        <Link to="/" className={`flex items-center gap-2 ${themeClasses.textMuted}`}>
-          <Home className="h-4 w-4" />
-          Home
-        </Link>
-      </li>
-      <li>
-        <Link to="/search-event" className={`flex items-center gap-2 ${themeClasses.textMuted}`}>
-          <Calendar className="h-4 w-4" />
-          Event
-        </Link>
-      </li>
-      <li>
-        <Link to="/contact" className={`flex items-center gap-2 ${themeClasses.textMuted}`}>
-          <Phone className="h-4 w-4" />
-          Contact
-        </Link>
-      </li>
-      <li>
-        <Link to="/about" className={`flex items-center gap-2 ${themeClasses.textMuted}`}>
-          <Info className="h-4 w-4" />
-          About
-        </Link>
-      </li>
-      {!isAuthenticated && (
-        <li>
-          <Link
-            to="/loginsignup"
-            className={`px-4 py-2 rounded-full text-white ${themeClasses.button}`}
-          >
-            Login
-          </Link>
-        </li>
-      )}
-    </>
-  );
-
-  const isAdminOrOrgPath = location.pathname.startsWith("/admindb") || 
-                          location.pathname.startsWith("/orgdb");
-
-  if (isAdminOrOrgPath) {
+  if (location.pathname.startsWith("/admindb") || location.pathname.startsWith("/orgdb")) {
     return null;
   }
 
   return (
-    <nav className={`fixed w-full top-0 z-50 ${themeClasses.nav} border-b backdrop-blur-lg ${
-      sticky ? "shadow-md" : ""
-    }`}>
+    <div className={themeClasses.nav}>
       <div className="max-w-7xl mx-auto px-4 py-3">
-        <div className="navbar">
-          <div className="navbar-start flex items-center">
-            <div className="dropdown lg:hidden">
-              <div tabIndex={0} role="button" className="btn btn-ghost">
-                <Menu className="h-5 w-5" />
-              </div>
-              <ul tabIndex={0} className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
-                {navItems}
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center">
+            <img src={eventA} alt="logo" className="h-12 w-auto" />
+          </Link>
+
+          {/* Right-aligned items container */}
+          <div className="flex items-center gap-4">
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center">
+              <ul className="flex items-center gap-6">
+                <li>
+                  <Link to="/" className={`flex items-center gap-2 ${themeClasses.textMuted} hover:text-blue-600`}>
+                    <Home className="h-4 w-4" />
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/search-event" className={`flex items-center gap-2 ${themeClasses.textMuted} hover:text-blue-600`}>
+                    <Calendar className="h-4 w-4" />
+                    Event
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contact" className={`flex items-center gap-2 ${themeClasses.textMuted} hover:text-blue-600`}>
+                    <Phone className="h-4 w-4" />
+                    Contact
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/about" className={`flex items-center gap-2 ${themeClasses.textMuted} hover:text-blue-600`}>
+                    <Info className="h-4 w-4" />
+                    About
+                  </Link>
+                </li>
               </ul>
             </div>
-            <Link to="/" className="navbar-center flex justify-start items-center">
-              <img src={eventA} alt="logo" height={100} width={100} />
-            </Link>
-          </div>
-          <div className="navbar-end space-x-3">
+
+            {/* Theme Toggle */}
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              className={`p-2 rounded-lg transition-colors duration-200 ${
+                isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+              }`}
             >
               {isDarkMode ? (
                 <Sun className="h-5 w-5 text-gray-300" />
@@ -138,69 +108,116 @@ const NavBar = () => {
                 <Moon className="h-5 w-5 text-gray-600" />
               )}
             </button>
-            {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
+
+            {/* Authentication and User Controls */}
+            {!isAuthenticated ? (
+              <Link
+                to="/loginsignup"
+                className={`px-6 py-2 rounded-full text-white ${themeClasses.button}`}
+              >
+                Login
+              </Link>
+            ) : (
+              <div className="flex items-center gap-4">
                 {userRole === 'Organizer' && (
-                  <Link to="/create-event" className={`hidden md:flex items-center space-x-2 px-4 py-2 rounded-full text-white ${themeClasses.button}`}>
+                  <Link
+                    to="/create-event"
+                    className={`hidden md:flex items-center gap-2 px-6 py-2 rounded-full ${themeClasses.button} shadow-lg hover:shadow-xl`}
+                  >
                     <Plus className="h-4 w-4" />
                     <span>Create Event</span>
                   </Link>
                 )}
-                <button className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+
+                <button className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                   <Bell className={`h-5 w-5 ${themeClasses.textMuted}`} />
                   <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
                 </button>
-                
-                {/* Profile Dropdown */}
-                <div className="relative">
+
+                <div className="relative profile-dropdown">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
-                      <span className="text-white text-sm">JD</span>
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
+                      <span className="text-white text-sm font-medium">JD</span>
                     </div>
                     <ChevronDown className={`h-4 w-4 ${themeClasses.textMuted}`} />
                   </button>
+
                   {isProfileOpen && (
-                    <div className={`absolute right-0 mt-2 w-48 py-2 ${themeClasses.card} rounded-xl shadow-lg`}>
-                      <Link 
-                        to="/profile" 
-                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 ${themeClasses.text}`}
-                      >
-                        <User className="h-4 w-4" />
-                        <span>Profile</span>
-                      </Link>
-                      <Link 
-                        to="/settings" 
-                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 ${themeClasses.text}`}
-                      >
-                        <Settings className="h-4 w-4" />
-                        <span>Settings</span>
-                      </Link>
-                      <hr className="my-2 border-gray-200 dark:border-gray-700" />
-                      <button 
-                        onClick={handleLogout}
-                        className="w-full px-4 py-2 text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span>Sign Out</span>
-                      </button>
+                    <div className={`absolute right-0 mt-2 w-56 rounded-xl ${themeClasses.card} shadow-lg border overflow-hidden`}>
+                      <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+                        <p className={`text-sm font-medium ${themeClasses.text}`}>John Doe</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">john@example.com</p>
+                      </div>
+                      <div className="p-2">
+                        <Link 
+                          to="/profile" 
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 ${themeClasses.text}`}
+                        >
+                          <User className="h-4 w-4" />
+                          <span>Profile</span>
+                        </Link>
+                        <Link 
+                          to="/settings" 
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 ${themeClasses.text}`}
+                        >
+                          <Settings className="h-4 w-4" />
+                          <span>Settings</span>
+                        </Link>
+                        <button 
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
-            ) : (
-              <div className="hidden lg:flex">
-                <ul className="menu menu-horizontal px-1">
-                  {navItems}
+            )}
+
+            {/* Mobile Menu Button */}
+            <div className="lg:hidden">
+              <div className="dropdown dropdown-end">
+                <button tabIndex={0} className={`btn btn-ghost ${themeClasses.textMuted}`}>
+                  <Menu className="h-5 w-5" />
+                </button>
+                <ul tabIndex={0} className={`menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow rounded-box w-52 ${themeClasses.card}`}>
+                  <li>
+                    <Link to="/" className={themeClasses.textMuted}>
+                      <Home className="h-4 w-4" />
+                      Home
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/search-event" className={themeClasses.textMuted}>
+                      <Calendar className="h-4 w-4" />
+                      Event
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/contact" className={themeClasses.textMuted}>
+                      <Phone className="h-4 w-4" />
+                      Contact
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/about" className={themeClasses.textMuted}>
+                      <Info className="h-4 w-4" />
+                      About
+                    </Link>
+                  </li>
                 </ul>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
-    </nav>
+    </div>
   );
 };
 
