@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import eventA from "../assets/images/eventA.png";
 import { 
   Search, 
   Bell, 
@@ -32,7 +33,8 @@ const NavBar = () => {
     text: isDarkMode ? 'text-gray-100' : 'text-gray-800',
     textMuted: isDarkMode ? 'text-gray-300' : 'text-gray-600',
     button: isDarkMode ? 'bg-purple-600 hover:bg-purple-500' : 'bg-purple-500 hover:bg-purple-600',
-    input: isDarkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-white/50 border-gray-200'
+    input: isDarkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-white/50 border-gray-200',
+    card: isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
   };
 
   useEffect(() => {
@@ -42,6 +44,17 @@ const NavBar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isProfileOpen && !event.target.closest('.relative')) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isProfileOpen]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -111,10 +124,7 @@ const NavBar = () => {
               </ul>
             </div>
             <Link to="/" className="navbar-center flex justify-start items-center">
-              <div className="flex items-center gap-2 text-xl font-bold">
-                <Image className="h-8 w-8" />
-                <span className={themeClasses.text}>EventA</span>
-              </div>
+              <img src={eventA} alt="logo" height={100} width={100} />
             </Link>
           </div>
           <div className="navbar-end space-x-3">
@@ -140,6 +150,45 @@ const NavBar = () => {
                   <Bell className={`h-5 w-5 ${themeClasses.textMuted}`} />
                   <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
                 </button>
+                
+                {/* Profile Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
+                      <span className="text-white text-sm">JD</span>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 ${themeClasses.textMuted}`} />
+                  </button>
+                  {isProfileOpen && (
+                    <div className={`absolute right-0 mt-2 w-48 py-2 ${themeClasses.card} rounded-xl shadow-lg`}>
+                      <Link 
+                        to="/profile" 
+                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 ${themeClasses.text}`}
+                      >
+                        <User className="h-4 w-4" />
+                        <span>Profile</span>
+                      </Link>
+                      <Link 
+                        to="/settings" 
+                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 ${themeClasses.text}`}
+                      >
+                        <Settings className="h-4 w-4" />
+                        <span>Settings</span>
+                      </Link>
+                      <hr className="my-2 border-gray-200 dark:border-gray-700" />
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full px-4 py-2 text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="hidden lg:flex">
