@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 import api from "../utils/api";
 
 const LoginSignup = () => {
+  const { isDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState('login');
   const [formData, setFormData] = useState({
     fullname: '',
@@ -149,16 +151,18 @@ const LoginSignup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-600 to-blue-800 pt-20">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-b from-blue-600 to-blue-800'} pt-20`}>
       <div className="max-w-md mx-auto p-6">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl overflow-hidden`}>
           <div className="flex">
             <button
               onClick={() => setActiveTab('login')}
               className={`flex-1 py-4 text-center font-semibold transition-colors ${
                 activeTab === 'login'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-purple-600 text-white'
+                  : isDarkMode 
+                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               Login
@@ -167,8 +171,10 @@ const LoginSignup = () => {
               onClick={() => setActiveTab('signup')}
               className={`flex-1 py-4 text-center font-semibold transition-colors ${
                 activeTab === 'signup'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-purple-600 text-white'
+                  : isDarkMode 
+                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               Sign Up
@@ -176,7 +182,7 @@ const LoginSignup = () => {
           </div>
 
           <div className="p-8">
-            <h2 className="text-2xl font-bold text-center mb-8">
+            <h2 className={`text-2xl font-bold text-center mb-8 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               {activeTab === 'login' ? 'Welcome Back!' : 'Create Account'}
             </h2>
 
@@ -189,14 +195,18 @@ const LoginSignup = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {activeTab === 'signup' && (
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <User className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`} />
                   <input
                     type="text"
                     name="fullname"
                     placeholder="Full Name"
                     value={formData.fullname}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
+                      isDarkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                        : 'border-gray-300 focus:ring-2 focus:ring-purple-500'
+                    } outline-none`}
                   />
                   {errors.fullname && (
                     <p className="text-red-500 text-xs mt-1">{errors.fullname}</p>
@@ -212,7 +222,7 @@ const LoginSignup = () => {
                   placeholder="Email Address"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                 />
                 {errors.email && (
                   <p className="text-red-500 text-xs mt-1">{errors.email}</p>
@@ -227,7 +237,7 @@ const LoginSignup = () => {
                   placeholder="Password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                 />
                 {errors.password && (
                   <p className="text-red-500 text-xs mt-1">{errors.password}</p>
@@ -240,7 +250,7 @@ const LoginSignup = () => {
                     name="role"
                     value={formData.role}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                   >
                     <option value="">Select Role</option>
                     <option value="User">User</option>
@@ -252,10 +262,10 @@ const LoginSignup = () => {
                 </div>
               )}
 
-              <button
+<button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {loading ? 'Processing...' : activeTab === 'login' ? 'Login' : 'Sign Up'}
                 <ArrowRight className="w-5 h-5" />
@@ -264,7 +274,7 @@ const LoginSignup = () => {
 
             {activeTab === 'login' && (
               <div className="mt-6 text-center">
-                <a href="#" className="text-blue-600 hover:underline">
+                <a href="#" className={`text-purple-600 hover:underline ${isDarkMode ? 'text-purple-400' : ''}`}>
                   Forgot your password?
                 </a>
               </div>

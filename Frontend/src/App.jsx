@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './Components/Layout';
 import Home from './Pages/Home';
-import SearchEvent from './Pages/SearchEvent';
+import PublicEvent from './Pages/PublicEvent';
 import About from './Pages/About/About';
 import Contact from './Pages/Contact';
 import LoginSignup from './Pages/LoginSignup';
@@ -18,7 +18,7 @@ const App = () => {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
-          <Route path="/search-event" element={<SearchEvent />} />
+          <Route path="/event" element={<PublicEvent />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/loginsignup" element={<LoginSignup />} />

@@ -81,7 +81,7 @@ export const getEvents = async (req, res) => {
 // Get a single event by ID
 export const getEventById = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id)
+    const event = await Event.find(req.params.orgId) 
       .populate("org_ID", "username email")  // Changed from host_ID to org_ID
       .populate("attendees", "username email");  // Added attendees population
 

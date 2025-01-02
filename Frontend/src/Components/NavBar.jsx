@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import eventA from "../assets/images/eventA.png";
+import { useTheme } from '../context/ThemeContext';
+import { jwtDecode } from "jwt-decode";
 import { 
   Search, Bell, User, LogOut, Settings, ChevronDown,
   Sun, Moon, Plus, Menu, Home, Calendar, Phone, Info
@@ -9,11 +11,23 @@ import {
 const NavBar = () => {
   const [sticky, setSticky] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
+  const { isDarkMode, setIsDarkMode } = useTheme();
   
   const isAuthenticated = localStorage.getItem('token');
   const userRole = localStorage.getItem('role');
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      try {
+        const decodedToken = jwtDecode(isAuthenticated);
+        setUser(decodedToken.user);
+      } catch (error) {
+        console.error("Invalid token:", error);
+      }
+    }
+  }, [isAuthenticated]);
 
   const themeClasses = {
     nav: `fixed w-full top-0 z-50 transition-all duration-300 ${
@@ -58,14 +72,11 @@ const NavBar = () => {
     <div className={themeClasses.nav}>
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          {/* Logo */}
           <Link to="/" className="flex items-center">
             <img src={eventA} alt="logo" className="h-12 w-auto" />
           </Link>
 
-          {/* Right-aligned items container */}
           <div className="flex items-center gap-4">
-            {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center">
               <ul className="flex items-center gap-6">
                 <li>
@@ -75,7 +86,7 @@ const NavBar = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/search-event" className={`flex items-center gap-2 ${themeClasses.textMuted} hover:text-blue-600`}>
+                  <Link to="/event" className={`flex items-center gap-2 ${themeClasses.textMuted} hover:text-blue-600`}>
                     <Calendar className="h-4 w-4" />
                     Event
                   </Link>
@@ -95,7 +106,6 @@ const NavBar = () => {
               </ul>
             </div>
 
-            {/* Theme Toggle */}
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               className={`p-2 rounded-lg transition-colors duration-200 ${
@@ -109,7 +119,6 @@ const NavBar = () => {
               )}
             </button>
 
-            {/* Authentication and User Controls */}
             {!isAuthenticated ? (
               <Link
                 to="/loginsignup"
@@ -140,7 +149,9 @@ const NavBar = () => {
                     className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
                     <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">JD</span>
+                      <span className="text-white text-sm font-medium">
+                        {user?.fullname?.split(' ').map(name => name[0]).join('') || 'U'}
+                      </span>
                     </div>
                     <ChevronDown className={`h-4 w-4 ${themeClasses.textMuted}`} />
                   </button>
@@ -148,8 +159,12 @@ const NavBar = () => {
                   {isProfileOpen && (
                     <div className={`absolute right-0 mt-2 w-56 rounded-xl ${themeClasses.card} shadow-lg border overflow-hidden`}>
                       <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-                        <p className={`text-sm font-medium ${themeClasses.text}`}>John Doe</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">john@example.com</p>
+                        <p className={`text-sm font-medium ${themeClasses.text}`}>
+                          {user?.fullname || 'User'}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {user?.email || 'user@example.com'}
+                        </p>
                       </div>
                       <div className="p-2">
                         <Link 
@@ -180,7 +195,6 @@ const NavBar = () => {
               </div>
             )}
 
-            {/* Mobile Menu Button */}
             <div className="lg:hidden">
               <div className="dropdown dropdown-end">
                 <button tabIndex={0} className={`btn btn-ghost ${themeClasses.textMuted}`}>
@@ -194,7 +208,7 @@ const NavBar = () => {
                     </Link>
                   </li>
                   <li>
-                    <Link to="/search-event" className={themeClasses.textMuted}>
+                    <Link to="/event" className={themeClasses.textMuted}>
                       <Calendar className="h-4 w-4" />
                       Event
                     </Link>
