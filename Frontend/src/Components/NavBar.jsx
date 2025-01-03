@@ -44,17 +44,27 @@ const NavBar = () => {
       isDarkMode 
         ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700' 
         : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
-    } text-white shadow-lg hover:shadow-xl transition-all duration-300`
+    } text-white shadow-lg hover:shadow-xl transition-all duration-300`,
+    profileButton: `flex items-center gap-2 p-2 rounded-lg ${
+      isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+    } transition-colors duration-200`,
+    dropdownItem: `flex items-center gap-2 px-3 py-2 rounded-lg ${
+      isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+    } ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} transition-colors duration-200`,
+    notificationButton: `relative p-2 rounded-lg ${
+      isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+    } transition-colors duration-200`,
+    dropdownMenu: `absolute right-0 mt-2 w-56 rounded-xl ${
+      isDarkMode ? 'bg-gray-900' : 'bg-white'
+    } shadow-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} overflow-hidden`
   };
 
-  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => setSticky(window.scrollY > 0);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Handle click outside profile dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (isProfileOpen && !event.target.closest('.profile-dropdown')) {
@@ -75,12 +85,10 @@ const NavBar = () => {
     navigate('/userdb');
   };
 
-  // Don't render navbar on admin or organizer dashboards
   if (location.pathname.startsWith("/admindb") || location.pathname.startsWith("/orgdb")) {
     return null;
   }
 
-  // Navigation items that change based on authentication status
   const getNavigationItems = () => {
     const commonItems = [
       {
@@ -100,7 +108,6 @@ const NavBar = () => {
       }
     ];
 
-    // Add Events link only for non-authenticated users
     if (!isAuthenticated) {
       commonItems.splice(1, 0, {
         to: "/event",
@@ -117,11 +124,10 @@ const NavBar = () => {
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <img src={eventA} alt="logo" className="h-12 w-auto" />
+            <img src={eventA} alt="logo" className={`h-12 w-auto ${isDarkMode ? 'invert' : ''}`} />
           </Link>
 
           <div className="flex items-center gap-4">
-            {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center">
               <ul className="flex items-center gap-6">
                 {getNavigationItems().map((item) => (
@@ -138,7 +144,6 @@ const NavBar = () => {
               </ul>
             </div>
 
-            {/* Theme Toggle */}
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               className={`p-2 rounded-lg transition-colors duration-200 ${
@@ -152,7 +157,6 @@ const NavBar = () => {
               )}
             </button>
 
-            {/* Auth Section */}
             {!isAuthenticated ? (
               <Link
                 to="/loginsignup"
@@ -162,7 +166,6 @@ const NavBar = () => {
               </Link>
             ) : (
               <div className="flex items-center gap-4">
-                {/* Dashboard Button for authenticated users */}
                 <button
                   onClick={handleDashboardClick}
                   className={themeClasses.dashboardButton}
@@ -171,7 +174,6 @@ const NavBar = () => {
                   <span>Dashboard</span>
                 </button>
 
-                {/* Create Event Button for Organizers */}
                 {userRole === 'Organizer' && (
                   <Link
                     to="/create-event"
@@ -182,17 +184,15 @@ const NavBar = () => {
                   </Link>
                 )}
 
-                {/* Notifications */}
-                <button className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                <button className={themeClasses.notificationButton}>
                   <Bell className={`h-5 w-5 ${themeClasses.textMuted}`} />
                   <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
                 </button>
 
-                {/* Profile Dropdown */}
                 <div className="relative profile-dropdown">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className={themeClasses.profileButton}
                   >
                     <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
                       <span className="text-white text-sm font-medium">
@@ -203,33 +203,35 @@ const NavBar = () => {
                   </button>
 
                   {isProfileOpen && (
-                    <div className={`absolute right-0 mt-2 w-56 rounded-xl bg-white dark:bg-gray-900 shadow-lg border dark:border-gray-700 overflow-hidden`}>
-                      <div className="p-3 border-b dark:border-gray-700">
+                    <div className={themeClasses.dropdownMenu}>
+                      <div className={`p-3 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                         <p className={`text-sm font-medium ${themeClasses.text}`}>
                           {user?.fullname || 'User'}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                           {user?.email || 'user@example.com'}
                         </p>
                       </div>
                       <div className="p-2">
                         <Link 
-                          to="/profile" 
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 ${themeClasses.text}`}
+                          to="/Userprofile" 
+                          className={themeClasses.dropdownItem}
                         >
                           <User className="h-4 w-4" />
                           <span>Profile</span>
                         </Link>
                         <Link 
                           to="/settings" 
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 ${themeClasses.text}`}
+                          className={themeClasses.dropdownItem}
                         >
                           <Settings className="h-4 w-4" />
                           <span>Settings</span>
                         </Link>
                         <button 
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-500 ${
+                            isDarkMode ? 'hover:bg-red-900/20' : 'hover:bg-red-50'
+                          } transition-colors duration-200`}
                         >
                           <LogOut className="h-4 w-4" />
                           <span>Sign Out</span>
@@ -241,13 +243,14 @@ const NavBar = () => {
               </div>
             )}
 
-            {/* Mobile Menu */}
             <div className="lg:hidden">
               <div className="dropdown dropdown-end">
                 <button tabIndex={0} className={`btn btn-ghost ${themeClasses.textMuted}`}>
                   <Menu className="h-5 w-5" />
                 </button>
-                <ul tabIndex={0} className={`menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow rounded-box w-52 bg-white dark:bg-gray-900`}>
+                <ul tabIndex={0} className={`menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow rounded-box w-52 ${
+                  isDarkMode ? 'bg-gray-900' : 'bg-white'
+                }`}>
                   {getNavigationItems().map((item) => (
                     <li key={item.to}>
                       <Link to={item.to} className={themeClasses.textMuted}>

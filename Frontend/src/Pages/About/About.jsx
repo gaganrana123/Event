@@ -9,7 +9,7 @@ const About = () => {
     {
       year: '2020',
       title: 'Foundation',
-      description: 'eVENTA was established with a vision to transform event management.'
+      description: 'eventA was established with a vision to transform event management.'
     },
     {
       year: '2021',
@@ -54,7 +54,7 @@ const About = () => {
   const Stats = () => (
     <div className="container mx-auto py-16">
       <h2 className={`text-4xl font-bold text-center mb-12 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-        eVENTA Platform Stats
+        eventA Platform Stats
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 text-center">
         <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-gray-800'} text-white p-8 rounded-2xl shadow-xl transform transition duration-500 hover:scale-105`}>
@@ -85,7 +85,7 @@ const About = () => {
       {/* Hero Section */}
       <div className={`bg-gradient-to-r ${isDarkMode ? 'from-gray-700 to-gray-800' : 'from-blue-600 to-blue-800'} text-white py-12`}>
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold mb-4">About eVENTA</h1>
+          <h1 className="text-4xl font-bold mb-4">About eventA</h1>
           <p className="text-blue-100 max-w-2xl mx-auto">
             Transforming the way people connect through memorable events
           </p>
@@ -96,7 +96,7 @@ const About = () => {
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="max-w-3xl mx-auto text-center">
           <p className={`text-xl ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-8 leading-relaxed`}>
-            Welcome to eVENTA, your premier platform for hosting and attending events. 
+            Welcome to eventA, your premier platform for hosting and attending events. 
             We make the process seamless and fun, providing cutting-edge tools for browsing events, 
             booking tickets, and hosting your own, with full customization options.
           </p>
@@ -164,7 +164,7 @@ const About = () => {
 
       {/* Benefits Section */}
       <div className="max-w-7xl mx-auto px-4 py-16">
-        <h2 className={`text-3xl font-bold text-center mb-12 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Why Choose eVENTA?</h2>
+        <h2 className={`text-3xl font-bold text-center mb-12 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Why Choose eventA?</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {benefits.map((benefit, index) => (
             <div key={index} className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-xl p-8`}>
@@ -183,7 +183,7 @@ const About = () => {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to Create Your Event?</h2>
           <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of successful event organizers on eVENTA
+            Join thousands of successful event organizers on eventA
           </p>
           <button className="px-8 py-3 bg-white rounded-full font-semibold text-blue-600 hover:bg-blue-50 transition-colors inline-flex items-center gap-2">
             Get Started Now <ArrowRight className="w-5 h-5" />
