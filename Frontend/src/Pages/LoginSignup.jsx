@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import api from "../utils/api";
 
@@ -10,17 +10,19 @@ const LoginSignup = () => {
     fullname: '',
     email: '',
     password: '',
+    confirmPassword: '',
     role: ''
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     // Check if user is already authenticated
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
-    
     if (token && role) {
       redirectBasedOnRole(role);
     }
@@ -46,6 +48,12 @@ const LoginSignup = () => {
     }
     if (!formData.email) newErrors.email = 'Email is required';
     if (!formData.password) newErrors.password = 'Password is required';
+    if (activeTab === 'signup' && !formData.confirmPassword) {
+      newErrors.confirmPassword = 'Confirm password is required';
+    }
+    if (activeTab === 'signup' && formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
     if (activeTab === 'signup' && !formData.role) {
       newErrors.role = 'Role is required';
     }
@@ -114,7 +122,8 @@ const LoginSignup = () => {
         setFormData(prev => ({
           ...prev,
           fullname: '',
-          role: ''
+          role: '',
+          confirmPassword: ''
         }));
       } else {
         setError('Signup failed: Invalid response data');
@@ -134,11 +143,8 @@ const LoginSignup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
     if (!validateForm()) return;
-
     setLoading(true);
-    
     try {
       if (activeTab === 'login') {
         await handleLogin();
@@ -232,17 +238,50 @@ const LoginSignup = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="Password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                  className="w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <Eye /> : <EyeOff />}
+                </button>
                 {errors.password && (
                   <p className="text-red-500 text-xs mt-1">{errors.password}</p>
                 )}
               </div>
+
+              {activeTab === 'signup' && (
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    placeholder="Confirm Password"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? <Eye /> : <EyeOff />}
+                  </button>
+                  {errors.confirmPassword && (
+                    <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+                  )}
+                </div>
+              )}
 
               {activeTab === 'signup' && (
                 <div className="relative">
@@ -262,7 +301,7 @@ const LoginSignup = () => {
                 </div>
               )}
 
-<button
+              <button
                 type="submit"
                 disabled={loading}
                 className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
