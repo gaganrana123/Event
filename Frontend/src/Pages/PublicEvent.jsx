@@ -18,6 +18,9 @@ const PublicEvent = () => {
     date: '',
     status: ''
   });
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const categories = ['Wedding', 'Concert', 'Sports', 'Conference', 'Workshop', 'Festival', 'Exhibition'];
   const priceRanges = ['Free', '$0-$50', '$51-$100', '$101-$200', '$200+'];

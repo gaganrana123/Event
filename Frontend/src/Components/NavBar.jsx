@@ -214,7 +214,7 @@ const NavBar = () => {
                       </div>
                       <div className="p-2">
                         <Link 
-                          to="/Userprofile" 
+                          to="/profile" 
                           className={themeClasses.dropdownItem}
                         >
                           <User className="h-4 w-4" />

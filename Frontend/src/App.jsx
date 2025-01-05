@@ -9,7 +9,8 @@ import LoginSignup from './Pages/LoginSignup';
 import AdminDashboard from './Pages/Landing/AdminDashboard';
 import OrganizerDashboard from './Pages/Landing/OrganizerDashboard';
 import UserDashboard from './Pages/Landing/UserDashboard';
-import Userprofile from './Pages/Landing/Userprofile';
+import Userprofile from './Pages/Userprofile';
+import Usersettings from './Pages/UserSettings';
 import PrivateRoute from './Components/PrivateRoute';
 
 const App = () => {
@@ -23,7 +24,8 @@ const App = () => {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/loginsignup" element={<LoginSignup />} />
-          <Route path="/Userprofile" element={<Userprofile />} />
+          <Route path="/profile" element={<Userprofile />} />
+          <Route path="/settings" element={<Usersettings />} />
 
           {/* Protected Routes */}
           <Route 

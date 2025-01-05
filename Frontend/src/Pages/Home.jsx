@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { Calendar, Users, MapPin, Trophy, Star, ArrowRight } from 'lucide-react';
@@ -6,6 +6,10 @@ import { useTheme } from '../context/ThemeContext';
 
 const Home = () => {
   const { isDarkMode } = useTheme();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   
   const features = [
     { 

@@ -1,244 +1,282 @@
-import React, { useState, useEffect } from "react";
-import { Calendar, Star, TrendingUp, BarChart2, PlusCircle, MapPin, DollarSign } from "lucide-react";
+import { useState } from "react";
+import { Menu, Plus, List, BarChart3, Settings, HelpCircle, Bell, LogOut, User } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import api from "../../utils/api";
 
 const OrganizerDashboard = () => {
-  const [events, setEvents] = useState([]);
-  const [totalEvents, setTotalEvents] = useState(0);
-  const [eventStats, setEventStats] = useState([]);
-  const [showCreateEventModal, setShowCreateEventModal] = useState(false);
-  const [newEvent, setNewEvent] = useState({
-    title: "",
-    location: "",
-    date: "",
-    ticketsSold: 0,
-    pricePerTicket: 0,
-  });
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState("Overview");
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = () => {
-    const dummyEvents = [
-      {
-        id: 1,
-        title: "Wedding Party",
-        location: "Beachside Resort",
-        date: "2024-12-01",
-        ticketsSold: 200,
-        totalTickets: 300,
-        pricePerTicket: 50,
-        interested: 400,
-        totalProfit: 10000,
-        marginRatio: 0.25,
-        status: "Upcoming"
-      },
-      {
-        id: 2,
-        title: "Corporate Event",
-        location: "City Convention Center",
-        date: "2024-11-15",
-        ticketsSold: 150,
-        totalTickets: 300,
-        pricePerTicket: 75,
-        interested: 500,
-        totalProfit: 11250,
-        marginRatio: 0.3,
-        status: "Completed"
-      },
-    ];
-
-    setEvents(dummyEvents);
-    setTotalEvents(dummyEvents.length);
-    setEventStats(dummyEvents);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/loginsignup";
   };
 
-  const handleEventCreation = (e) => {
-    e.preventDefault();
-    const createdEvent = {
-      id: events.length + 1,
-      ...newEvent,
-      totalProfit: newEvent.ticketsSold * newEvent.pricePerTicket,
-      marginRatio: newEvent.ticketsSold / 1000,
-      interested: Math.floor(newEvent.ticketsSold * 1.5),
-      status: "Upcoming"
+  const tabs = [
+    { label: "Overview", icon: BarChart3 },
+    { label: "Create Event", icon: Plus },
+    { label: "My Events", icon: List },
+    { label: "Settings", icon: Settings },
+    { label: "Help", icon: HelpCircle },
+  ];
+
+  const chartData = [
+    { name: "Total Events", count: 12 },
+    { name: "Pending Approvals", count: 5 },
+    { name: "Upcoming Events", count: 7 },
+  ];
+
+  const handleCreateEvent = async (event) => {
+    event.preventDefault();
+
+    const eventData = {
+      event_name: event.target.event_name.value,
+      description: event.target.description.value,
+      event_date: event.target.event_date.value,
+      registrationDeadline: event.target.registrationDeadline.value,
+      time: event.target.time.value,
+      location: event.target.location.value,
+      price: event.target.price.value,
+      category: event.target.category.value,
+      tags: event.target.tags.value.split(",").map((tag) => tag.trim()),
+      image: event.target.image.value,
+      org_ID: "67738fad103ca82546f5dab2", // Example org_ID
+      totalSlots: event.target.totalSlots.value,
+      isPublic: event.target.isPublic.checked,
     };
 
-    setEvents([...events, createdEvent]);
-    setNewEvent({
-      title: "",
-      location: "",
-      date: "",
-      ticketsSold: 0,
-      pricePerTicket: 0,
-    });
-    setShowCreateEventModal(false);
+    try {
+      const response = await api.post('/events/create', eventData);
+      alert("Event created successfully!");
+    } catch (error) {
+      console.error("Error creating event:", error);
+      alert(error.response?.data?.message || "An error occurred while creating the event.");
+    }
   };
 
-  const getStatusColor = (status) => {
-    switch(status) {
-      case "Upcoming": return "badge-primary";
-      case "Completed": return "badge-success";
-      default: return "badge-neutral";
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "Overview":
+        return (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Dashboard Overview</h2>
+            <div className="bg-white p-6 rounded-lg shadow">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#3B82F6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        );
+      case "Create Event":
+        return (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Create New Event</h2>
+            <form className="bg-white p-6 rounded-lg shadow space-y-6" onSubmit={handleCreateEvent}>
+              {/* Event Details Section */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Event Details</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-medium mb-1" htmlFor="event_name">
+                      Event Name
+                    </label>
+                    <input id="event_name" name="event_name" type="text" placeholder="Enter event name" className="w-full p-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1" htmlFor="category">
+                      Category
+                    </label>
+                    <select id="category" name="category" className="w-full p-2 border rounded">
+                      <option value="">Select a category</option>
+                      <option value="trending">Trending</option>
+                      <option value="featured">Featured</option>
+                      <option value="regular">Regular</option>
+                    </select>
+                  </div>
+                  <div className="col-span-1 sm:col-span-2">
+                    <label className="block font-medium mb-1" htmlFor="description">
+                      Description
+                    </label>
+                    <textarea id="description" name="description" placeholder="Provide a detailed description of the event" className="w-full p-2 border rounded" rows="4"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              {/* Date and Time Section */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Date & Time</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-medium mb-1" htmlFor="event_date">
+                      Event Date
+                    </label>
+                    <input id="event_date" name="event_date" type="date" className="w-full p-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1" htmlFor="time">
+                      Time
+                    </label>
+                    <input id="time" name="time" type="time" className="w-full p-2 border rounded" />
+                  </div>
+                  <div className="col-span-1 sm:col-span-2">
+                    <label className="block font-medium mb-1" htmlFor="registrationDeadline">
+                      Registration Deadline
+                    </label>
+                    <input id="registrationDeadline" name="registrationDeadline" type="date" className="w-full p-2 border rounded" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Location and Pricing Section */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Location & Pricing</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-medium mb-1" htmlFor="location">
+                      Location
+                    </label>
+                    <input id="location" name="location" type="text" placeholder="Enter event location" className="w-full p-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1" htmlFor="price">
+                      Price (in USD)
+                    </label>
+                    <input id="price" name="price" type="number" placeholder="Enter ticket price" className="w-full p-2 border rounded" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Options */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Additional Options</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-medium mb-1" htmlFor="tags">
+                      Tags
+                    </label>
+                    <input id="tags" name="tags" type="text" placeholder="Add tags (e.g., books, fairs)" className="w-full p-2 border rounded" />
+                    <small className="text-gray-500">Separate tags with commas.</small>
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1" htmlFor="image">
+                      Image URL
+                    </label>
+                    <input id="image" name="image" type="text" placeholder="Provide an image URL" className="w-full p-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1" htmlFor="totalSlots">
+                      Total Slots
+                    </label>
+                    <input id="totalSlots" name="totalSlots" type="number" placeholder="Enter total slots available" className="w-full p-2 border rounded" />
+                  </div>
+                  <div className="flex items-center">
+                    <input id="isPublic" name="isPublic" type="checkbox" className="mr-2" />
+                    <label className="font-medium" htmlFor="isPublic">
+                      Make this event public
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button type="submit" className="w-full p-3 bg-blue-500 text-white rounded hover:bg-blue-600">
+                Create Event
+              </button>
+            </form>
+          </div>
+        );
+      case "My Events":
+        return <div>Your events will be displayed here.</div>;
+      case "Settings":
+        return <div>Configure your dashboard settings here.</div>;
+      case "Help":
+        return <div>Find answers to your questions here.</div>;
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="container mx-auto">
-        {/* Header */}
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-extrabold text-gray-800 flex items-center">
-            <Star className="mr-3 text-yellow-500" size={40} />
+    <div className="flex">
+      {/* Sidebar */}
+      <div className={`${isSidebarOpen ? "w-64" : "w-16"} bg-gray-800 text-white h-screen transition-all`}>
+        <div className="flex items-center justify-between p-4">
+          <h1 className={`text-2xl font-semibold transition-all ${isSidebarOpen ? "block" : "hidden"}`}>
             Organizer Dashboard
           </h1>
-          <button 
-            onClick={() => setShowCreateEventModal(true)}
-            className="btn btn-primary btn-lg flex items-center gap-2"
+          <Menu onClick={() => setSidebarOpen(!isSidebarOpen)} className="cursor-pointer text-white" />
+        </div>
+        <ul className="space-y-4 mt-8">
+          {tabs.map((tab) => (
+            <li
+              key={tab.label}
+              className={`flex items-center space-x-3 px-6 py-2 cursor-pointer ${
+                activeTab === tab.label ? "bg-blue-600 text-white" : "hover:bg-blue-700"
+              }`}
+              onClick={() => setActiveTab(tab.label)}
+            >
+              <tab.icon className="w-5 h-5" />
+              <span className={`${isSidebarOpen ? "block" : "hidden"}`}>{tab.label}</span>
+            </li>
+          ))}
+          {/* Logout Button */}
+          <li
+            className="flex items-center space-x-3 px-6 py-2 cursor-pointer hover:bg-blue-700"
+            onClick={handleLogout}
           >
-            <PlusCircle size={20} /> Create New Event
-          </button>
-        </header>
+            <LogOut className="w-5 h-5 text-white" />
+            <span className={`${isSidebarOpen ? "block" : "hidden"}`}>Logout</span>
+          </li>
+        </ul>
+      </div>
 
-        {/* Stats Overview */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl transition-shadow">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-700">Total Events</h3>
-              <BarChart2 className="text-blue-500" />
+      {/* Main Content */}
+      <div className="flex-1 p-6">
+        {/* Navbar (Profile, Notifications, and Logout) */}
+        <div className="flex justify-between items-center p-4">
+          {/* Logo or Dashboard Title */}
+          <div className="flex items-center">
+            <h1 className={`text-2xl font-semibold transition-all ${isSidebarOpen ? "block" : "hidden"}`}>
+              Organizer Dashboard
+            </h1>
+          </div>
+
+          {/* Menu Icon (for sidebar toggle) */}
+          <Menu onClick={() => setSidebarOpen(!isSidebarOpen)} className="cursor-pointer text-white" />
+
+          {/* Profile and Notification Icons */}
+          <div className="flex items-center space-x-6">
+            <div className="relative">
+              <Bell className="w-6 h-6 cursor-pointer text-white" />
+              <span className="absolute top-0 right-0 bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                3
+              </span>
             </div>
-            <p className="text-4xl font-bold text-blue-600">{totalEvents}</p>
-          </div>
-
-          <div className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl transition-shadow">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-700">Total Profit</h3>
-              <DollarSign className="text-green-500" />
+            <div className="relative">
+              <User className="w-6 h-6 cursor-pointer text-white" />
+              <span className="absolute top-0 right-0 bg-green-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                1
+              </span>
             </div>
-            <p className="text-4xl font-bold text-green-600">
-              ${eventStats.reduce((acc, event) => acc + event.totalProfit, 0).toLocaleString()}
-            </p>
-          </div>
-
-          <div className="bg-white shadow-lg rounded-xl p-6 hover:shadow-xl transition-shadow">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-700">Avg Margin Ratio</h3>
-              <TrendingUp className="text-purple-500" />
-            </div>
-            <p className="text-4xl font-bold text-purple-600">
-              {(
-                eventStats.reduce((acc, event) => acc + event.marginRatio, 0) /
-                eventStats.length
-              ).toFixed(2)}
-            </p>
-          </div>
-        </section>
-
-        {/* Events Grid */}
-        <section>
-          <h2 className="text-3xl font-bold mb-6 text-gray-800">Your Events</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
-              <div 
-                key={event.id} 
-                className="bg-white rounded-xl shadow-lg overflow-hidden transform transition-all hover:scale-105 hover:shadow-xl"
-              >
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-2xl font-bold text-gray-800">{event.title}</h3>
-                    <span className={`badge ${getStatusColor(event.status)} font-semibold`}>
-                      {event.status}
-                    </span>
-                  </div>
-                  <div className="space-y-3 text-gray-600">
-                    <div className="flex items-center">
-                      <MapPin className="mr-2 text-red-500" size={20} />
-                      <span>{event.location}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="mr-2 text-blue-500" size={20} />
-                      <span>{event.date}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 pt-4 border-t">
-                      <div>
-                        <p className="font-semibold text-gray-800">Tickets Sold</p>
-                        <p className="text-lg">{event.ticketsSold}</p>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-800">Total Profit</p>
-                        <p className="text-lg text-green-600">${event.totalProfit}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Create Event Modal */}
-        {showCreateEventModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-8">
-              <h2 className="text-2xl font-bold mb-6 text-center">Create New Event</h2>
-              <form onSubmit={handleEventCreation} className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Event Title"
-                  className="input input-bordered w-full"
-                  value={newEvent.title}
-                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Event Location"
-                  className="input input-bordered w-full"
-                  value={newEvent.location}
-                  onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-                  required
-                />
-                <input
-                  type="date"
-                  className="input input-bordered w-full"
-                  value={newEvent.date}
-                  onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                  required
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="number"
-                    placeholder="Tickets Sold"
-                    className="input input-bordered w-full"
-                    value={newEvent.ticketsSold}
-                    onChange={(e) => setNewEvent({ ...newEvent, ticketsSold: Number(e.target.value) })}
-                    required
-                  />
-                  <input
-                    type="number"
-                    placeholder="Price Per Ticket"
-                    className="input input-bordered w-full"
-                    value={newEvent.pricePerTicket}
-                    onChange={(e) => setNewEvent({ ...newEvent, pricePerTicket: Number(e.target.value) })}
-                    required
-                  />
-                </div>
-                <div className="flex justify-between mt-6">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowCreateEventModal(false)} 
-                    className="btn btn-ghost"
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-primary">
-                    Create Event
-                  </button>
-                </div>
-              </form>
+            {/* Logout Button */}
+            <div
+              className="flex items-center space-x-3 px-4 py-2 cursor-pointer hover:bg-blue-700 rounded"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-5 h-5 text-white" />
+              <span className={`${isSidebarOpen ? "block" : "hidden"}`}>Logout</span>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Render the active tab content */}
+        {renderTabContent()}
       </div>
     </div>
   );

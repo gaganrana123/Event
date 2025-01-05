@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Mail, Phone, MessageSquare, Send, MapPin } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const Contact = () => {
   const { isDarkMode } = useTheme();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const contactInfo = [
     {
