@@ -33,9 +33,12 @@ const App = () => {
             element={<PrivateRoute element={AdminDashboard} requiredRole="Admin" />} 
           />
           <Route 
-            path="/orgdb" 
-            element={<PrivateRoute element={OrganizerDashboard} requiredRole="Organizer" />} 
-          />
+            path="/orgdb/*" 
+            element={<PrivateRoute element={OrganizerDashboard} requiredRole="Organizer" />}
+          >
+            <Route index element={<Navigate to="overview" />} />
+            <Route path=":tab" element={<OrganizerDashboard />} />
+          </Route>
           <Route 
             path="/userdb" 
             element={<PrivateRoute element={UserDashboard} requiredRole="User" />} 
