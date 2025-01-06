@@ -38,6 +38,11 @@ export const createEvent = async (req, res) => {
     });
 
     const savedEvent = await newEvent.save();
+    await savedEvent.populate([
+      { path: "org_ID", select: "username email" },
+      { path: "category", select: "categoryName" }
+    ]);
+    
     res.status(201).json(savedEvent);
   } catch (error) {
     console.error(error);
@@ -50,23 +55,49 @@ export const createEvent = async (req, res) => {
 
 // Get all events
 export const getEvents = async (req, res) => {
-  const { search, location, category } = req.query;
+  const { search, location, category, priceRange, date, status } = req.query;
 
   try {
     // Build query based on parameters
     const query = {};
+    
     if (search) {
       query.$or = [
         { event_name: { $regex: search, $options: "i" }},
         { description: { $regex: search, $options: "i" }}
       ];
     }
-    if (location) query.location = { $regex: location, $options: "i" };
-    if (category) query.category = category;  // Changed from category_ID to category
+    
+    if (location) {
+      query.location = { $regex: location, $options: "i" };
+    }
+    
+    if (category) {
+      query.category = category; // This should now be a valid ObjectId
+    }
+
+    if (status) {
+      query.status = status;
+    }
+
+    if (priceRange) {
+      const [min, max] = priceRange.split('-').map(Number);
+      query.price = { $gte: min || 0 };
+      if (max) query.price.$lte = max;
+    }
+
+    if (date) {
+      const searchDate = new Date(date);
+      query.event_date = {
+        $gte: searchDate,
+        $lt: new Date(searchDate.setDate(searchDate.getDate() + 1))
+      };
+    }
 
     const events = await Event.find(query)
-      .populate("org_ID", "username email")  // Changed from host_ID to org_ID
-      .sort({ event_date: 1 });  // Sort by upcoming events first
+      .populate("org_ID", "username email")
+      .populate("category", "categoryName")
+      .sort({ event_date: 1 });
 
     res.status(200).json(events);
   } catch (error) {
@@ -81,9 +112,10 @@ export const getEvents = async (req, res) => {
 // Get a single event by ID
 export const getEventById = async (req, res) => {
   try {
-    const event = await Event.find(req.params.orgId) 
-      .populate("org_ID", "username email")  // Changed from host_ID to org_ID
-      .populate("attendees", "username email");  // Added attendees population
+    const event = await Event.findById(req.params.id)
+      .populate("org_ID", "username email")
+      .populate("category", "categoryName")
+      .populate("attendees", "username email");
 
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
@@ -101,9 +133,11 @@ export const getEventById = async (req, res) => {
 
 export const getEventByIdName = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id, "event_name description event_date location org_ID") // Specify fields to include
-      .populate("org_ID", "username email")  // Include organizer's details
-      .populate("attendees", "username email");  // Include attendees' details if applicable
+    const event = await Event.findById(req.params.id)
+      .select("event_name description event_date location org_ID category")
+      .populate("org_ID", "username email")
+      .populate("category", "categoryName")
+      .populate("attendees", "username email");
 
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
@@ -129,9 +163,12 @@ export const updateEvent = async (req, res) => {
       updateData,
       { 
         new: true,
-        runValidators: true  // This ensures schema validations run on update
+        runValidators: true
       }
-    );
+    ).populate([
+      { path: "org_ID", select: "username email" },
+      { path: "category", select: "categoryName" }
+    ]);
 
     if (!updatedEvent) {
       return res.status(404).json({ message: "Event not found" });

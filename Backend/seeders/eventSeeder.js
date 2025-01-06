@@ -1,5 +1,6 @@
 import Event from '../model/event.schema.js';
 import User from '../model/user.schema.js';
+import Category from '../model/categories.schema.js';
 
 const events = [
   {
@@ -10,7 +11,7 @@ const events = [
     time: '12:00 PM',
     location: 'Central Park',
     price: 49.99,
-    category: 'featured',
+    categoryName: 'Festival',
     image: 'festival.jpg',
     totalSlots: 1000,
     status: 'upcoming'
@@ -23,7 +24,7 @@ const events = [
     time: '9:00 AM',
     location: 'Convention Center',
     price: 299.99,
-    category: 'trending',
+    categoryName: 'Education',
     image: 'tech-conf.jpg',
     totalSlots: 500,
     status: 'upcoming'
@@ -36,7 +37,7 @@ const events = [
     time: '8:00 AM',
     location: 'Wellness Center',
     price: 25.00,
-    category: 'regular',
+    categoryName: 'Sports',
     image: 'yoga.jpg',
     totalSlots: 30,
     status: 'upcoming'
@@ -49,7 +50,7 @@ const events = [
     time: '10:00 AM',
     location: 'Downtown Art Gallery',
     price: 20.00,
-    category: 'regular',
+    categoryName: 'Festival',
     image: 'art-expo.jpg',
     totalSlots: 200,
     status: 'upcoming'
@@ -62,7 +63,7 @@ const events = [
     time: '3:00 PM',
     location: 'Culinary Institute',
     price: 75.00,
-    category: 'featured',
+    categoryName: 'Food',
     image: 'masterclass.jpg',
     totalSlots: 50,
     status: 'upcoming'
@@ -75,7 +76,7 @@ const events = [
     time: '11:00 AM',
     location: 'City Library',
     price: 10.00,
-    category: 'trending',
+    categoryName: 'Education',
     image: 'book-fair.jpg',
     totalSlots: 300,
     status: 'upcoming'
@@ -99,14 +100,31 @@ const seedEvents = async () => {
       return;
     }
 
-    // Add organizer ID to each event
-    const eventsWithOrganizer = events.map(event => ({
-      ...event,
-      org_ID: organizer._id
-    }));
+    // Get all categories
+    const categories = await Category.find({});
+    if (categories.length === 0) {
+      console.log("Categories not found. Please run category seeder first.");
+      return;
+    }
+
+    // Add organizer ID and category ID to each event
+    const eventsWithReferences = events.map(event => {
+      const categoryDoc = categories.find(cat => cat.categoryName === event.categoryName);
+      if (!categoryDoc) {
+        throw new Error(`Category ${event.categoryName} not found`);
+      }
+      
+      // Remove categoryName and add category ID
+      const { categoryName, ...eventWithoutCategoryName } = event;
+      return {
+        ...eventWithoutCategoryName,
+        org_ID: organizer._id,
+        category: categoryDoc._id
+      };
+    });
 
     // Create the events
-    await Event.insertMany(eventsWithOrganizer);
+    await Event.insertMany(eventsWithReferences);
     console.log('Events seeded successfully!');
 
   } catch (error) {

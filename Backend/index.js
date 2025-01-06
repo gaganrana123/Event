@@ -4,9 +4,10 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import seedRoles from './seeders/roleSeeder.js';
 import seedPermissions from './seeders/PermissionSeeder.js';
-import seedRolePermissions from './seeders/rolePermissionSeeder.js';
 import seedUsers from './seeders/userSeeder.js';
 import seedEvents from './seeders/eventSeeder.js';
+import seedCategories from './seeders/categorieSeeder.js';
+import seedRolePermissions from './seeders/rolePermissionSeeder.js';
 import eventRoutes from './routes/Event.routes.js';
 import userRoute from './routes/user.route.js';
 import roleRoute from './routes/role.route.js';
@@ -48,9 +49,11 @@ const connectDB = async () => {
     await seedPermissions();
     console.log("3. Seeding users...");
     await seedUsers();
-    console.log("4. Seeding events...");
+    console.log("4. Seeding Categories ...");
+    await seedCategories()
+    console.log("5. Seeding events...");
     await seedEvents();
-    console.log("5. Seeding role permissions...");
+    console.log("6. Seeding role permissions...");
     await seedRolePermissions();
     console.log("✓ Database seeding completed!");
   } catch (error) {
