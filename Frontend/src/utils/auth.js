@@ -2,6 +2,18 @@ export const getToken = () => {
   return localStorage.getItem('token');
 };
 
+export const getDecodedToken = () => {
+  const token = getToken();
+  if (token) {
+    try {
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  }
+  return null;
+};
 // Function to set token and role
 export const setAuth = (token, role) => {
   localStorage.setItem('token', token);

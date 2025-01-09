@@ -38,10 +38,11 @@ const eventSchema = new mongoose.Schema({
     required: true,
     min: [0, 'Price cannot be negative']
   },
+  // Changed from enum to ObjectId reference
   category: { 
-    type: String, 
-    required: true,
-    enum: ['trending', 'featured', 'regular'] 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: true
   },
   tags: [{ type: String, trim: true }],
   image: { type: String },
@@ -71,7 +72,7 @@ const eventSchema = new mongoose.Schema({
   },
   status: { 
     type: String, 
-    enum: ['upcoming', 'ongoing', 'completed', 'cancelled'],
+    enum: ['upcoming', 'ongoing', 'completed', 'cancelled', 'pending','approved','rejected'],
     default: 'upcoming'
   }
 }, { timestamps: true });

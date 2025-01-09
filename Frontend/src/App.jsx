@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 import Layout from './Components/Layout';
 import Home from './Pages/Home';
 import PublicEvent from './Pages/PublicEvent';
@@ -14,6 +15,12 @@ import Usersettings from './Pages/UserSettings';
 import PrivateRoute from './Components/PrivateRoute';
 
 const App = () => {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>; // Or your loading component
+  }
+
   return (
     <Router>
       <Layout>

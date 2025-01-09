@@ -9,15 +9,18 @@ const seedPermissions = async () => {
   ];
 
   try {
+    let created = 0;
     for (const perm of permissions) {
       const existingPermission = await Permission.findOne({ permissionName: perm.permissionName });
       if (!existingPermission) {
         await Permission.create(perm);
-        console.log(`Permission ${perm.permissionName} created`);
+        created++;
       }
     }
+    
+    console.log(`Permissions: ${created} created`);
   } catch (error) {
-    console.error('Error seeding permissions:', error);
+    console.error('Seeding error:', error);
   }
 };
 

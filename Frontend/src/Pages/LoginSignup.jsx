@@ -20,6 +20,10 @@ const LoginSignup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
+
+  useEffect(() => {
     // Check if user is already authenticated
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
@@ -79,66 +83,85 @@ const LoginSignup = () => {
 
   const handleLogin = async () => {
     try {
-      const loginData = {
-        email: formData.email,
-        password: formData.password
-      };
+        const loginData = {
+            email: formData.email,
+            password: formData.password
+        };
 
-      const response = await api.post("/users/login", loginData);
-      console.log("Login Response:", response.data);
-
-      const { message, token, user } = response.data;
-
-      if (token && user) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('role', user.role);
-        redirectBasedOnRole(user.role);
-      } else {
-        setError(message || 'Login failed: Invalid response data');
-      }
+        // Update the endpoint to match your backend route structure
+        const response = await api.post("/users/login", loginData);
+        
+        if (response.data?.token && response.data?.user) {
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('role', response.data.user.role);
+            
+            // Clear any existing errors
+            setError('');
+            
+            // Add some debug logging
+            console.log("Login successful:", response.data);
+            
+            // Redirect based on role
+            redirectBasedOnRole(response.data.user.role);
+        } else {
+            setError('Invalid response from server');
+        }
     } catch (error) {
-      console.error("Login Error:", error);
-      if (error.response?.data?.message) {
-        setError(`Error: ${error.response.data.message}`);
-      } else if (error.message) {
-        setError(`Error: ${error.message}`);
-      } else {
-        setError("An unknown error occurred. Please try again.");
-      }
+        console.error("Login Error:", error.response?.data || error.message);
+        let errorMessage = 'An error occurred during login';
+        
+        if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        setError(errorMessage);
+        setLoading(false);
     }
-  };
+};
 
-  const handleSignup = async () => {
+const handleSignup = async () => {
     try {
-      const response = await api.post("/users/signup", formData);
-      console.log("Signup Response:", response.data);
+        const signupData = {
+            fullname: formData.fullname,
+            email: formData.email,
+            password: formData.password,
+            role: formData.role
+        };
 
-      const { message, user } = response.data;
-
-      if (user) {
-        setError('');
-        alert(message || 'Signup successful! Please login.');
-        setActiveTab('login');
-        setFormData(prev => ({
-          ...prev,
-          fullname: '',
-          role: '',
-          confirmPassword: ''
-        }));
-      } else {
-        setError('Signup failed: Invalid response data');
-      }
+        // Update the endpoint to match your backend route structure
+        const response = await api.post("/users/signup", signupData);
+        
+        if (response.data?.user) {
+            setError('');
+            alert(response.data.message || 'Signup successful! Please login.');
+            setActiveTab('login');
+            setFormData({
+                fullname: '',
+                email: '',
+                password: '',
+                confirmPassword: '',
+                role: ''
+            });
+        } else {
+            setError('Signup failed: Invalid response data');
+        }
     } catch (error) {
-      console.error("Signup Error:", error);
-      if (error.response?.data?.message) {
-        setError(`Error: ${error.response.data.message}`);
-      } else if (error.message) {
-        setError(`Error: ${error.message}`);
-      } else {
-        setError("An unknown error occurred. Please try again.");
-      }
+        console.error("Signup Error:", error.response?.data || error.message);
+        let errorMessage = 'An error occurred during signup';
+        
+        if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        setError(errorMessage);
+    } finally {
+        setLoading(false);
     }
-  };
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
+import http from 'http';
+import { Server as socketIo } from 'socket.io';
 import cors from 'cors';
 import seedRoles from './seeders/roleSeeder.js';
 import seedPermissions from './seeders/PermissionSeeder.js';
@@ -11,9 +13,25 @@ import seedRolePermissions from './seeders/rolePermissionSeeder.js';
 import eventRoutes from './routes/Event.routes.js';
 import userRoute from './routes/user.route.js';
 import roleRoute from './routes/role.route.js';
+import categoriesRoutes from './routes/categories.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 // Initialize express app
 const app = express();
+
+// Create HTTP server
+const server = http.createServer(app);
+
+// Initialize Socket.IO with CORS configuration
+const io = new socketIo(server, {
+  cors: {
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }
+});
+
+export { io };
 
 // Load environment variables
 dotenv.config();
@@ -78,16 +96,32 @@ process.on('SIGTERM', gracefulShutdown);
 connectDB();
 
 // API routes
-app.use('/api/v1/events', eventRoutes); // Versioned API path
+app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/users', userRoute);
 app.use('/api/v1/roles', roleRoute);
+app.use("/api/v1/categories", categoriesRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
 
 // Health check
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
-// Start the server
-app.listen(PORT, () => {
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  // Listen for notification creation from the backend and emit to clients
+  socket.on('send-notification', (notification) => {
+    io.emit('new-notification', notification);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
+// Start the server using the HTTP server instance
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

@@ -9,35 +9,38 @@ const users = [
 ];
 
 const seedUsers = async () => {
+  let created = 0;
+  let skipped = 0;
+  let failed = 0;
+  
   for (const userData of users) {
     const { email, role } = userData;
     
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      console.log(`User '${email}' already exists.`);
-    } else {
-      // Find the role by its name
-      const roleFound = await Role.findOne({ role_Name: role });
-      if (!roleFound) {
-        console.log(`Role '${role}' not found for user '${email}'.`);
-        continue; // Skip user creation if role is not found
-      }
-      
-      // Hash the password
-      const hashedPassword = await bcryptjs.hash(userData.password, 10);
-      
-      // Create the user
-      const newUser = new User({
-        fullname: userData.fullname,
-        email,
-        password: hashedPassword,
-        role: roleFound._id
-      });
-      
-      await newUser.save();
-      console.log(`User '${email}' created.`);
+      skipped++;
+      continue;
     }
+
+    const roleFound = await Role.findOne({ role_Name: role });
+    if (!roleFound) {
+      failed++;
+      continue;
+    }
+    
+    const hashedPassword = await bcryptjs.hash(userData.password, 10);
+    const newUser = new User({
+      fullname: userData.fullname,
+      email,
+      password: hashedPassword,
+      role: roleFound._id
+    });
+    
+    await newUser.save();
+    created++;
   }
+  
+  console.log(`Users: ${created} created, ${skipped} existing, ${failed} failed`);
 };
 
 export default seedUsers;

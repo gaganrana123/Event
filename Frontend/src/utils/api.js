@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 const api = axios.create({
     baseURL: 'http://localhost:4001/api/v1',
@@ -7,33 +8,55 @@ const api = axios.create({
     }
 });
 
+// Helper function to get user data from token
+export const getUserFromToken = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        try {
+            const decoded = jwtDecode(token);
+            return decoded;
+        } catch (error) {
+            console.error('Error decoding token:', error);
+            localStorage.removeItem('token'); // Remove invalid token
+            return null;
+        }
+    }
+    return null;
+};
+
 // Add request interceptor for token
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');  // Retrieve the token from localStorage
+        const token = localStorage.getItem('token');
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`;  // Attach the token to the Authorization header
+            config.headers.Authorization = `Bearer ${token}`;
         }
-        return config;  // Continue with the request
+        return config;
     },
     (error) => {
-        return Promise.reject(error);  // If there's an error with the request, reject it
+        return Promise.reject(error);
     }
 );
-
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
-    (response) => response,  // If the response is successful, just return it
-    (error) => {  // If there's an error in the response
-        if (error.response?.status === 401) {  // If the error is a 401 Unauthorized status
-            localStorage.removeItem('token');  // Remove the token from localStorage
-            localStorage.removeItem('role');   // Remove the role from localStorage
-            window.location.href = '/loginsignup';  // Redirect the user to the login page
+    (response) => response,
+    (error) => {
+        if (error.response) {
+            console.error('API Error Response:', error.response.data);
+            
+            // Handle token expiration
+            if (error.response.status === 401) {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            }
+        } else if (error.request) {
+            console.error('No response received:', error.request);
+        } else {
+            console.error('Request setup error:', error.message);
         }
-        return Promise.reject(error);  // Reject the response to propagate the error
+        return Promise.reject(error);
     }
 );
-
 
 export default api;

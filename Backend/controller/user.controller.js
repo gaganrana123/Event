@@ -33,6 +33,7 @@ export const signup = async (req, res) => {
             email,
             password: hashedPassword,
             role: foundRole._id, // Save the ObjectId reference to the Role
+            // isApproved: false,
         });
         await createdUser.save();
 
@@ -113,5 +114,37 @@ export const login = async (req, res) => {
     } catch (error) {
         console.error("Login Error:", error);
         res.status(500).json({ message: error.message });
+    }
+};
+
+export const getUserByEmail = async (req, res) => {
+    try {
+        const { email } = req.params;
+
+        // Validate email parameter
+        if (!email) {
+            return res.status(400).json({ message: "Email parameter is required" });
+        }
+
+        // Find user by email and populate the role
+        const user = await User.findOne({ email }).populate('role');
+        
+        // If no user found
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Return user data
+        res.status(200).json({
+            user: {
+                _id: user._id,
+                fullname: user.fullname,
+                email: user.email,
+                role: user.role.role_Name
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching user by email:", error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };

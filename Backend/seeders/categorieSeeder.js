@@ -1,27 +1,26 @@
 import Category from '../model/categories.schema.js';
 
 const categories = [
-  'Food',
-  'Festival',
-  'Wedding',
-  'Education',
-  'Political',
-  'Concert',
-  'Sports',
-  'Gaming',
+  'Food', 'Festival', 'Wedding', 'Education',
+  'Political', 'Concert', 'Sports', 'Gaming',
 ];
 
 const seedCategories = async () => {
+  let created = 0;
+  let existing = 0;
+  
   for (const categoryName of categories) {
     const existingCategory = await Category.findOne({ categoryName });
     if (existingCategory) {
-      console.log(`Category '${categoryName}' already exists.`);
+      existing++;
     } else {
       const newCategory = new Category({ categoryName });
       await newCategory.save();
-      console.log(`Category '${categoryName}' created.`);
+      created++;
     }
   }
+  
+  console.log(`Categories: ${created} created, ${existing} existing`);
 };
 
 export default seedCategories;
