@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Trash2, Edit, Eye } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { Trash2, Edit, Eye, Calendar, Users, DollarSign, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { useSidebar } from "../../context/SidebarContext";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import api, { getUserFromToken } from "../../utils/api";
 import { getToken } from "../../utils/auth";
 
@@ -12,12 +13,43 @@ const OrganizerDashboard = () => {
   const { tab } = useParams();
   const navigate = useNavigate();
   const { isSidebarOpen } = useSidebar();
+  const { isDarkMode } = useTheme();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("");
   const [categories, setCategories] = useState([]);
   const [events, setEvents] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    totalEvents: 0,
+    upcomingEvents: 0,
+    totalAttendees: 0,
+    totalRevenue: 0,
+  });
+  const [chartData, setChartData] = useState([]);
+  // Custom Card Components
+const Card = ({ children, className = "" }) => {
+  const { isDarkMode } = useTheme();
+  return (
+    <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-4 ${className}`}>
+      {children}
+    </div>
+  );
+};
+
+const CardHeader = ({ children, className = "" }) => (
+  <div className={`flex items-center justify-between mb-2 ${className}`}>
+    {children}
+  </div>
+);
+
+const CardTitle = ({ children, className = "" }) => (
+  <h3 className={`text-sm font-medium ${className}`}>{children}</h3>
+);
+
+const CardContent = ({ children, className = "" }) => (
+  <div className={className}>{children}</div>
+);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -37,12 +69,11 @@ const OrganizerDashboard = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      if (activeTab === "My Events") {
+      if (activeTab === "My Events" || activeTab === "Overview") {
         try {
           setLoading(true);
           setError("");
   
-          // Get token and decode it to get user email
           const token = getToken();
           if (!token) {
             throw new Error("No authentication token found");
@@ -53,7 +84,6 @@ const OrganizerDashboard = () => {
             throw new Error("Unable to verify user email");
           }
   
-          // Get user data using email
           const userResponse = await api.get(`/users/email/${decodedToken.user.email}`);
           const userData = userResponse.data.user;
               
@@ -61,14 +91,37 @@ const OrganizerDashboard = () => {
             throw new Error("Unable to verify user credentials");
           }
   
-          // Fetch events using the retrieved user ID
           const eventsResponse = await api.get(`/events/user/${userData._id}`);
+          const userEvents = eventsResponse.data;
           
-          // Handle the response
-          if (eventsResponse.data) {
-            setEvents(eventsResponse.data);
-          } else {
-            setEvents([]);
+          setEvents(userEvents);
+
+          // Calculate stats for Overview
+          if (activeTab === "Overview") {
+            const totalEvents = userEvents.length;
+            const upcomingEvents = userEvents.filter(e => new Date(e.event_date) > new Date()).length;
+            const totalAttendees = userEvents.reduce((sum, event) => sum + (event.attendees?.length || 0), 0);
+            const totalRevenue = userEvents.reduce((sum, event) => 
+              sum + (event.price * (event.attendees?.length || 0)), 0);
+
+            setStats({
+              totalEvents,
+              upcomingEvents,
+              totalAttendees,
+              totalRevenue,
+            });
+
+            // Prepare chart data
+            const chartData = userEvents
+              .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
+              .map(event => ({
+                name: format(new Date(event.event_date), 'MMM d'),
+                attendees: event.attendees?.length || 0,
+                revenue: event.price * (event.attendees?.length || 0),
+                capacity: event.totalSlots,
+              }));
+
+            setChartData(chartData);
           }
   
         } catch (err) {
@@ -196,7 +249,12 @@ const OrganizerDashboard = () => {
   };
 
   const renderCreateEventForm = () => (
-    <form className="bg-white p-6 rounded-lg shadow space-y-6" onSubmit={handleCreateEvent}>
+    <form 
+      className={`${
+        isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-white'
+      } p-6 rounded-lg shadow space-y-6`} 
+      onSubmit={handleCreateEvent}
+    >
       {error && <div className="text-red-500 p-3 rounded bg-red-50">{error}</div>}
 
       <div>
@@ -207,7 +265,9 @@ const OrganizerDashboard = () => {
             <input 
               name="event_name" 
               type="text" 
-              className="w-full p-2 border rounded" 
+              className={`w-full p-2 border rounded ${
+                isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300'
+              }`}
               required 
             />
           </div>
@@ -216,7 +276,9 @@ const OrganizerDashboard = () => {
             <label className="block text-sm font-medium mb-1">Category</label>
             <select 
               name="category" 
-              className="w-full p-2 border rounded" 
+              className={`w-full p-2 border rounded ${
+                isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300'
+              }`}
               required
             >
               <option value="">Select Category</option>
@@ -314,7 +376,9 @@ const OrganizerDashboard = () => {
           <label className="block text-sm font-medium mb-1">Description</label>
           <textarea
             name="description"
-            className="w-full p-2 border rounded"
+            className={`w-full p-2 border rounded ${
+              isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300'
+            }`}
             rows="4"
             required
           />
@@ -334,7 +398,9 @@ const OrganizerDashboard = () => {
   const renderMyEvents = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {events.map((event) => (
-        <div key={event._id} className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div key={event._id} className={`${
+          isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-white'
+        } rounded-lg shadow-md overflow-hidden`}>
           <img 
             src={event.image || "/default-event.jpg"} 
             alt={event.event_name}
@@ -343,37 +409,37 @@ const OrganizerDashboard = () => {
           
           <div className="p-4">
             <h3 className="text-xl font-semibold mb-2">{event.event_name}</h3>
-            <p className="text-gray-600 mb-2 line-clamp-2">{event.description}</p>
+            <p className={`${
+              isDarkMode ? 'text-gray-300' : 'text-gray-600'
+            } mb-2 line-clamp-2`}>
+              {event.description}
+            </p>
             
-            <div className="space-y-2 text-sm text-gray-500">
+            <div className={`space-y-2 text-sm ${
+              isDarkMode ? 'text-gray-400' : 'text-gray-500'
+            }`}>
               <p>Date: {format(new Date(event.event_date), 'PPP')}</p>
               <p>Location: {event.location}</p>
               <p>Price: ${event.price}</p>
-              <p>Status: <span className={`capitalize px-2 py-1 rounded ${
-                event.status === 'upcoming' ? 'bg-green-100 text-green-800' :
-                event.status === 'ongoing' ? 'bg-blue-100 text-blue-800' :
-                event.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                'bg-red-100 text-red-800'
-              }`}>{event.status}</span></p>
               <p>Slots: {event.attendees?.length || 0}/{event.totalSlots}</p>
             </div>
             
             <div className="mt-4 flex justify-end space-x-2">
               <button 
                 onClick={() => window.location.href = `/event/${event._id}`}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                className="p-2 text-blue-500 hover:bg-blue-50 rounded"
               >
                 <Eye size={20} />
               </button>
               <button 
                 onClick={() => window.location.href = `/event/edit/${event._id}`}
-                className="p-2 text-green-600 hover:bg-green-50 rounded"
+                className="p-2 text-green-500 hover:bg-green-50 rounded"
               >
                 <Edit size={20} />
               </button>
               <button 
                 onClick={() => handleDeleteEvent(event._id)}
-                className="p-2 text-red-600 hover:bg-red-50 rounded"
+                className="p-2 text-red-500 hover:bg-red-50 rounded"
                 disabled={event.status !== 'upcoming'}
               >
                 <Trash2 size={20} />
@@ -384,10 +450,109 @@ const OrganizerDashboard = () => {
       ))}
       
       {events.length === 0 && (
-        <div className="col-span-full text-center py-8 text-gray-500">
+        <div className={`col-span-full text-center py-8 ${
+          isDarkMode ? 'text-gray-400' : 'text-gray-500'
+        }`}>
           No events found. Create your first event to get started!
         </div>
       )}
+    </div>
+  );
+
+  const renderOverview = () => (
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Events</CardTitle>
+            <Calendar className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalEvents}</div>
+            <p className="text-sm text-gray-500">{stats.upcomingEvents} upcoming</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Attendees</CardTitle>
+            <Users className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalAttendees}</div>
+            <p className="text-sm text-gray-500">Across all events</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
+            <p className="text-sm text-gray-500">All time earnings</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Next Event</CardTitle>
+            <Clock className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {chartData.length > 0 ? chartData[0].name : "No events"}
+            </div>
+            <p className="text-sm text-gray-500">Upcoming event date</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Attendance Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="attendees" fill="#3b82f6" name="Attendees" />
+                <Bar dataKey="capacity" fill="#93c5fd" name="Capacity" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue Trend</CardTitle>
+          </CardHeader>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Line 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#3b82f6" 
+                  name="Revenue"
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 
@@ -396,6 +561,8 @@ const OrganizerDashboard = () => {
     if (error) return <div className="text-red-500 p-4">{error}</div>;
 
     switch (activeTab) {
+      case "Overview":
+        return renderOverview();
       case "Create Event":
         return renderCreateEventForm();
       case "My Events":
@@ -406,7 +573,9 @@ const OrganizerDashboard = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-16"}`}>
+    <div className={`min-h-screen transition-all duration-300 ${
+      isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50'
+    } ${isSidebarOpen ? "ml-64" : "ml-16"}`}>
       <div className="p-8">
         <h1 className="text-2xl font-bold mb-6">{activeTab}</h1>
         {renderContent()}

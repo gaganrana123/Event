@@ -109,44 +109,63 @@ const NavBar = () => {
   const OrganizerNavBar = () => (
     <div className="flex">
       {/* Sidebar */}
-      <div className={`${isSidebarOpen ? "w-64" : "w-16"} bg-white shadow-lg h-screen fixed transition-all ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
-        <div className="flex items-center justify-between p-4">
-          <h1 className={`text-2xl font-semibold transition-all ${isSidebarOpen ? "block" : "hidden"}`}>
+      <div className={`
+        fixed top-0 left-0 h-screen transition-all duration-300 z-20
+        ${isSidebarOpen ? "w-64" : "w-16"}
+        ${isDarkMode 
+          ? 'bg-gray-900 border-r border-gray-800 text-gray-100' 
+          : 'bg-white border-r border-gray-200 text-gray-800'}
+      `}>
+        <div className={`
+          flex items-center justify-between p-4
+          ${isDarkMode ? 'border-b border-gray-800' : 'border-b border-gray-200'}
+        `}>
+          <h1 className={`
+            text-2xl font-semibold transition-all
+            ${isSidebarOpen ? "block" : "hidden"}
+            ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}
+          `}>
             Event<span className="text-blue-400">A</span>
           </h1>
           <Menu 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-            className="cursor-pointer"
+            className={`cursor-pointer ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}
           />
         </div>
         <ul className="space-y-4 mt-8">
           {tabs.map((tab) => (
             <li
               key={tab.label}
-              className={`flex items-center space-x-3 px-6 py-2 cursor-pointer ${
-                activeTab === tab.label 
+              className={`
+                flex items-center space-x-3 px-6 py-2 cursor-pointer
+                transition-all duration-200
+                ${activeTab === tab.label 
                   ? "bg-blue-500 text-white" 
                   : isDarkMode 
-                    ? "hover:bg-gray-800" 
-                    : "hover:bg-gray-100"
-              }`}
+                    ? "text-gray-300 hover:bg-gray-800" 
+                    : "text-gray-700 hover:bg-gray-100"}
+              `}
               onClick={() => {
                 setActiveTab(tab.label);
                 navigate(`/orgdb/${tab.label.toLowerCase().replace(' ', '-')}`);
               }}
             >
-              <tab.icon className="w-5 h-5" />
+              <tab.icon className={`w-5 h-5 ${activeTab === tab.label ? 'text-white' : ''}`} />
               <span className={`${isSidebarOpen ? "block" : "hidden"}`}>{tab.label}</span>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* Main Header */}
-      <div className={`flex-1 ${isSidebarOpen ? "ml-64" : "ml-16"}`}>
-        <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-white'} shadow-sm`}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
+      {/* Main Header - Now Sticky */}
+      <div className={`fixed top-0 right-0 z-10 transition-all duration-300
+        ${isSidebarOpen ? "left-64" : "left-16"}
+      `}>
+        <div className={`w-full ${isDarkMode ? 'bg-gray-900' : 'bg-white'} shadow-sm border-b ${
+          isDarkMode ? 'border-gray-800' : 'border-gray-200'
+        }`}>
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
               <h1 className={`text-2xl font-semibold ${themeClasses.text}`}>
                 EventA Organizer Dashboard
               </h1>
