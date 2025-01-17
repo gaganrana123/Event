@@ -1,7 +1,8 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { AuthProvider } from './context/AuthContext'
-import ErrorBoundary from './components/ErrorBoundary'
+import { ErrorBoundary } from './Components/ErrorBoundary'
+import { SidebarProvider } from './context/SidebarContext'
 import App from './App'
 import './index.css'
 
@@ -10,7 +11,9 @@ root.render(
   <React.StrictMode>
     <ErrorBoundary>
       <AuthProvider>
-        <App />
+        <SidebarProvider>
+          <App />
+        </SidebarProvider>
       </AuthProvider>
     </ErrorBoundary>
   </React.StrictMode>

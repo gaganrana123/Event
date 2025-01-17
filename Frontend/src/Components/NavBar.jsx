@@ -2,30 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import eventA from "../assets/images/eventA.png";
 import { useTheme } from '../context/ThemeContext';
+import { useSidebar } from '../context/SidebarContext';
 import { jwtDecode } from "jwt-decode";
 import { 
-  Bell, User, LogOut, Settings, ChevronDown,
+  Bell, User, LogOut, Settings, 
   Sun, Moon, Plus, Menu, Home, Phone, Info,
-  LayoutDashboard, Calendar, BarChart3, HelpCircle, List
+  LayoutDashboard, Calendar, HelpCircle
 } from 'lucide-react';
 
 const NavBar = () => {
   const [sticky, setSticky] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [activeTab, setActiveTab] = useState("Overview");
   const [user, setUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isDarkMode, setIsDarkMode } = useTheme();
-  
+  const { isDarkMode, setIsDarkMode } = useTheme(); 
+  const { isSidebarOpen } = useSidebar(); 
   
   const isAuthenticated = localStorage.getItem('token');
   const userRole = localStorage.getItem('role');
 
   const themeClasses = {
-    nav: `fixed w-full top-0 z-50 transition-all duration-300 ${
+    nav: `fixed top-0 z-40 transition-all duration-300 ${
       sticky 
         ? (isDarkMode ? 'bg-gray-900/95' : 'bg-white/95') 
         : (isDarkMode ? 'bg-gray-900' : 'bg-white')
@@ -42,14 +41,6 @@ const NavBar = () => {
     { id: 1, message: "New event registration", time: "2 mins ago" },
     { id: 2, message: "Payment received", time: "1 hour ago" },
     { id: 3, message: "Event reminder", time: "2 hours ago" },
-  ];
-
-  const tabs = [
-    { label: "Overview", icon: BarChart3 },
-    { label: "Create Event", icon: Plus },
-    { label: "My Events", icon: List },
-    { label: "Settings", icon: Settings },
-    { label: "Help", icon: HelpCircle },
   ];
 
   useEffect(() => {
@@ -89,205 +80,98 @@ const NavBar = () => {
   };
 
   const getNavigationItems = () => {
-    const commonItems = [
-      { to: "/", icon: Home, text: "Home" },
-      { to: "/contact", icon: Phone, text: "Contact" },
-      { to: "/about", icon: Info, text: "About" }
-    ];
+    if (!isAuthenticated || (isAuthenticated && userRole === 'User')) {
+      const commonItems = [
+        { to: "/", icon: Home, text: "Home" },
+        { to: "/contact", icon: Phone, text: "Contact" },
+        { to: "/about", icon: Info, text: "About" }
+      ];
 
-    if (!isAuthenticated) {
-      commonItems.splice(1, 0, {
-        to: "/event",
-        icon: Calendar,
-        text: "Events"
-      });
+      if (!isAuthenticated) {
+        commonItems.splice(1, 0, {
+          to: "/event",
+          icon: Calendar,
+          text: "Events"
+        });
+      }
+
+      return commonItems;
     }
-
-    return commonItems;
+    return [];
   };
 
-  const OrganizerNavBar = () => (
-    <div className="flex">
-      {/* Sidebar */}
-      <div className={`
-        fixed top-0 left-0 h-screen transition-all duration-300 z-20
-        ${isSidebarOpen ? "w-64" : "w-16"}
-        ${isDarkMode 
-          ? 'bg-gray-900 border-r border-gray-800 text-gray-100' 
-          : 'bg-white border-r border-gray-200 text-gray-800'}
-      `}>
-        <div className={`
-          flex items-center justify-between p-4
-          ${isDarkMode ? 'border-b border-gray-800' : 'border-b border-gray-200'}
-        `}>
-          <h1 className={`
-            text-2xl font-semibold transition-all
-            ${isSidebarOpen ? "block" : "hidden"}
-            ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}
-          `}>
-            Event<span className="text-blue-400">A</span>
-          </h1>
-          <Menu 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-            className={`cursor-pointer ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}
-          />
-        </div>
-        <ul className="space-y-4 mt-8">
-          {tabs.map((tab) => (
-            <li
-              key={tab.label}
-              className={`
-                flex items-center space-x-3 px-6 py-2 cursor-pointer
-                transition-all duration-200
-                ${activeTab === tab.label 
-                  ? "bg-blue-500 text-white" 
-                  : isDarkMode 
-                    ? "text-gray-300 hover:bg-gray-800" 
-                    : "text-gray-700 hover:bg-gray-100"}
-              `}
-              onClick={() => {
-                setActiveTab(tab.label);
-                navigate(`/orgdb/${tab.label.toLowerCase().replace(' ', '-')}`);
-              }}
-            >
-              <tab.icon className={`w-5 h-5 ${activeTab === tab.label ? 'text-white' : ''}`} />
-              <span className={`${isSidebarOpen ? "block" : "hidden"}`}>{tab.label}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+  // Dashboard-specific navbar with fixed sidebar
+  if (location.pathname.startsWith("/admindb") || (userRole === 'Organizer' && location.pathname.startsWith("/orgdb"))) {
+    return (
+      <div 
+        className={`${themeClasses.nav} right-0 transition-all duration-300`}
+        style={{
+          width: isSidebarOpen ? 'calc(100% - 16rem)' : 'calc(100% - 4rem)',
+          marginLeft: isSidebarOpen ? '16rem' : '4rem',
+        }}
+      >
+        <div className="w-full px-4 py-3">
+          <div className="flex items-center justify-end">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`p-2 rounded-lg ${
+                  isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                }`}
+              >
+                {isDarkMode ? (
+                  <Sun className="h-5 w-5 text-gray-300" />
+                ) : (
+                  <Moon className="h-5 w-5 text-gray-600" />
+                )}
+              </button>
 
-      {/* Main Header - Now Sticky */}
-      <div className={`fixed top-0 right-0 z-10 transition-all duration-300
-        ${isSidebarOpen ? "left-64" : "left-16"}
-      `}>
-        <div className={`w-full ${isDarkMode ? 'bg-gray-900' : 'bg-white'} shadow-sm border-b ${
-          isDarkMode ? 'border-gray-800' : 'border-gray-200'
-        }`}>
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <h1 className={`text-2xl font-semibold ${themeClasses.text}`}>
-                EventA Organizer Dashboard
-              </h1>
-              
-              <div className="flex items-center space-x-4">
+              <div className="relative notifications-dropdown">
                 <button
-                  onClick={() => setIsDarkMode(!isDarkMode)}
-                  className={`p-2 rounded-lg ${
+                  onClick={() => {
+                    setShowNotifications(!showNotifications);
+
+                  }}
+                  className={`p-2 hover:bg-gray-100 rounded-full relative ${
                     isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
                   }`}
                 >
-                  {isDarkMode ? (
-                    <Sun className="h-5 w-5 text-gray-300" />
-                  ) : (
-                    <Moon className="h-5 w-5 text-gray-600" />
-                  )}
+                  <Bell className={`w-6 h-6 ${themeClasses.text}`} />
+                  <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    3
+                  </span>
                 </button>
-
-                <div className="relative notifications-dropdown">
-                  <button
-                    onClick={() => {
-                      setShowNotifications(!showNotifications);
-                      setIsProfileOpen(false);
-                    }}
-                    className={`p-2 hover:bg-gray-100 rounded-full relative ${
-                      isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    <Bell className={`w-6 h-6 ${themeClasses.text}`} />
-                    <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                      3
-                    </span>
-                  </button>
-                  
-                  {showNotifications && (
-                    <div className={themeClasses.dropdownMenu}>
-                      {notifications.map((notification) => (
-                        <div 
-                          key={notification.id} 
-                          className={`px-4 py-2 ${
-                            isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'
-                          }`}
-                        >
-                          <p className={`text-sm ${themeClasses.text}`}>
-                            {notification.message}
-                          </p>
-                          <p className={`text-xs ${themeClasses.textMuted}`}>
-                            {notification.time}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="relative profile-dropdown">
-                  <button
-                    onClick={() => {
-                      setIsProfileOpen(!isProfileOpen);
-                      setShowNotifications(false);
-                    }}
-                    className="p-2 hover:bg-gray-100 rounded-full"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">
-                        {user?.fullname?.split(' ').map(name => name[0]).join('') || 'U'}
-                      </span>
-                    </div>
-                  </button>
-                  
-                  {isProfileOpen && (
-                    <div className={themeClasses.dropdownMenu}>
-                      <div className={`p-3 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                        <p className={`text-sm font-medium ${themeClasses.text}`}>
-                          {user?.fullname || 'User'}
+                
+                {showNotifications && (
+                  <div className={themeClasses.dropdownMenu}>
+                    {notifications.map((notification) => (
+                      <div 
+                        key={notification.id} 
+                        className={`px-4 py-2 ${
+                          isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <p className={`text-sm ${themeClasses.text}`}>
+                          {notification.message}
                         </p>
-                        <p className={`text-sm ${themeClasses.textMuted}`}>
-                          {user?.email || 'user@example.com'}
+                        <p className={`text-xs ${themeClasses.textMuted}`}>
+                          {notification.time}
                         </p>
                       </div>
-                      <div className="p-2">
-                        <Link 
-                          to="/profile" 
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-                            isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                          } ${themeClasses.text}`}
-                        >
-                          <User className="h-4 w-4" />
-                          <span>Profile</span>
-                        </Link>
-                        <Link 
-                          to="/settings" 
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-                            isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                          } ${themeClasses.text}`}
-                        >
-                          <Settings className="h-4 w-4" />
-                          <span>Settings</span>
-                        </Link>
-                        <button 
-                          onClick={handleLogout}
-                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-500 ${
-                            isDarkMode ? 'hover:bg-red-900/20' : 'hover:bg-red-50'
-                          }`}
-                        >
-                          <LogOut className="h-4 w-4" />
-                          <span>Sign Out</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 
-  const RegularNavBar = () => (
-    <div className={themeClasses.nav}>
+  // Regular navbar for non-dashboard routes
+  return (
+    <div className={`${themeClasses.nav} w-full`}>
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center">
@@ -343,6 +227,43 @@ const NavBar = () => {
                   </button>
                 )}
 
+                <div className="relative notifications-dropdown">
+                  <button
+                    onClick={() => {
+                      setShowNotifications(!showNotifications);
+                      setIsProfileOpen(false);
+                    }}
+                    className={`p-2 hover:bg-gray-100 rounded-full relative ${
+                      isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    <Bell className={`w-6 h-6 ${themeClasses.text}`} />
+                    <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                      3
+                    </span>
+                  </button>
+                  
+                  {showNotifications && (
+                    <div className={themeClasses.dropdownMenu}>
+                      {notifications.map((notification) => (
+                        <div 
+                          key={notification.id} 
+                          className={`px-4 py-2 ${
+                            isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          <p className={`text-sm ${themeClasses.text}`}>
+                            {notification.message}
+                          </p>
+                          <p className={`text-xs ${themeClasses.textMuted}`}>
+                            {notification.time}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="relative profile-dropdown">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -358,80 +279,74 @@ const NavBar = () => {
                   </button>
 
                   {isProfileOpen && (
-                   <div className={themeClasses.dropdownMenu}>
-                   <div className={`p-3 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                     <p className={`text-sm font-medium ${themeClasses.text}`}>
-                       {user?.fullname || 'User'}
-                     </p>
-                     <p className={`text-sm ${themeClasses.textMuted}`}>
-                       {user?.email || 'user@example.com'}
-                     </p>
-                   </div>
-                   <div className="p-2">
-                     <Link 
-                       to="/profile" 
-                       className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-                         isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                       } ${themeClasses.text}`}
-                     >
-                       <User className="h-4 w-4" />
-                       <span>Profile</span>
-                     </Link>
-                     <Link 
-                       to="/settings" 
-                       className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-                         isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                       } ${themeClasses.text}`}
-                     >
-                       <Settings className="h-4 w-4" />
-                       <span>Settings</span>
-                     </Link>
-                     <button 
-                       onClick={handleLogout}
-                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-500 ${
-                         isDarkMode ? 'hover:bg-red-900/20' : 'hover:bg-red-50'
-                       }`}
-                     >
-                       <LogOut className="h-4 w-4" />
-                       <span>Sign Out</span>
-                     </button>
-                   </div>
-                 </div>
-               )}
-             </div>
-           </div>
-         )}
+                    <div className={themeClasses.dropdownMenu}>
+                      <div className={`p-3 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                        <p className={`text-sm font-medium ${themeClasses.text}`}>
+                          {user?.fullname || 'User'}
+                        </p>
+                        <p className={`text-sm ${themeClasses.textMuted}`}>
+                        {user?.email || 'user@example.com'}
+                        </p>
+                      </div>
+                      <div className="p-2">
+                        <Link 
+                          to="/profile" 
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                            isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                          } ${themeClasses.text}`}
+                        >
+                          <User className="h-4 w-4" />
+                          <span>Profile</span>
+                        </Link>
+                        <Link 
+                          to="/settings" 
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                            isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                          } ${themeClasses.text}`}
+                        >
+                          <Settings className="h-4 w-4" />
+                          <span>Settings</span>
+                        </Link>
+                        <button 
+                          onClick={handleLogout}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-500 ${
+                            isDarkMode ? 'hover:bg-red-900/20' : 'hover:bg-red-50'
+                          }`}
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
-         <div className="lg:hidden">
-           <div className="dropdown dropdown-end">
-             <button tabIndex={0} className={`btn btn-ghost ${themeClasses.textMuted}`}>
-               <Menu className="h-5 w-5" />
-             </button>
-             <ul tabIndex={0} className={`menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow rounded-box w-52 ${
-               isDarkMode ? 'bg-gray-900' : 'bg-white'
-             }`}>
-               {getNavigationItems().map((item) => (
-                 <li key={item.to}>
-                   <Link to={item.to} className={themeClasses.textMuted}>
-                     <item.icon className="h-4 w-4" />
-                     {item.text}
-                   </Link>
-                 </li>
-               ))}
-             </ul>
-           </div>
-         </div>
-       </div>
-     </div>
-   </div>
- </div>
-);
-
-if (location.pathname.startsWith("/admindb")) {
- return null;
-}
-
-return isAuthenticated && userRole === 'Organizer' ? <OrganizerNavBar /> : <RegularNavBar />;
+            <div className="lg:hidden">
+              <div className="dropdown dropdown-end">
+                <button tabIndex={0} className={`btn btn-ghost ${themeClasses.textMuted}`}>
+                  <Menu className="h-5 w-5" />
+                </button>
+                <ul tabIndex={0} className={`menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow rounded-box w-52 ${
+                  isDarkMode ? 'bg-gray-900' : 'bg-white'
+                }`}>
+                  {getNavigationItems().map((item) => (
+                    <li key={item.to}>
+                      <Link to={item.to} className={themeClasses.textMuted}>
+                        <item.icon className="h-4 w-4" />
+                        {item.text}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default NavBar;
