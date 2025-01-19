@@ -14,7 +14,8 @@ const events = [
     categoryName: 'Festival',
     image: 'festival.jpg',
     totalSlots: 1000,
-    status: 'upcoming'
+    isPublic:'true',
+    status: 'approved'
   },
   {
     event_name: 'Tech Conference 2024',
@@ -27,7 +28,8 @@ const events = [
     categoryName: 'Education',
     image: 'tech-conf.jpg',
     totalSlots: 500,
-    status: 'upcoming'
+    isPublic:'true',
+    status: 'approved'
   },
   {
     event_name: 'Yoga Workshop',
@@ -40,7 +42,8 @@ const events = [
     categoryName: 'Sports',
     image: 'yoga.jpg',
     totalSlots: 30,
-    status: 'upcoming'
+    isPublic:'true',
+    status: 'approved'
   },
   {
     event_name: 'Art Expo 2025',
@@ -53,7 +56,8 @@ const events = [
     categoryName: 'Festival',
     image: 'art-expo.jpg',
     totalSlots: 200,
-    status: 'upcoming'
+    isPublic:'false',
+    status: 'pending'
   },
   {
     event_name: 'Cooking Masterclass',
@@ -66,7 +70,8 @@ const events = [
     categoryName: 'Food',
     image: 'masterclass.jpg',
     totalSlots: 50,
-    status: 'upcoming'
+    isPublic:'false',
+    status: 'pending'
   },
   {
     event_name: 'Book Fair 2025',
@@ -79,14 +84,15 @@ const events = [
     categoryName: 'Education',
     image: 'book-fair.jpg',
     totalSlots: 300,
-    status: 'upcoming'
+    isPublic:'false',
+    status: 'pending'
   }  
 ];
 
 const seedEvents = async () => {
   try {
     // Find the organizer user
-    const organizer = await User.findOne({ email: 'organizer@example.com' });
+    const organizer = await User.findOne({ email: 'organizer@gmail.com' });
     
     if (!organizer) {
       console.log("Organizer user not found. Please run user seeder first.");

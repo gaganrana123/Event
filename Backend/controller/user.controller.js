@@ -148,3 +148,45 @@ export const getUserByEmail = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+export const getAllUsers = async (req, res) => {
+    try {
+        // Fetch all users and populate their roles
+        const users = await User.find()
+            .populate('role')
+            .select('-password') // Exclude password from the response
+            .sort({ createdAt: -1 }); // Sort by newest first
+
+        // Group users by role
+        const usersByRole = users.reduce((acc, user) => {
+            const roleName = user.role.role_Name;
+            if (!acc[roleName]) {
+                acc[roleName] = [];
+            }
+            acc[roleName].push({
+                _id: user._id,
+                fullname: user.fullname,
+                email: user.email,
+                createdAt: user.createdAt
+            });
+            return acc;
+        }, {});
+
+        // Get total counts
+        const userCounts = {
+            total: users.length,
+            byRole: Object.keys(usersByRole).reduce((acc, role) => {
+                acc[role] = usersByRole[role].length;
+                return acc;
+            }, {})
+        };
+
+        res.status(200).json({
+            users: usersByRole,
+            counts: userCounts
+        });
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};

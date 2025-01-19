@@ -54,8 +54,8 @@ export const createEvent = async (req, res) => {
       image: req.body.image,
       org_ID,
       totalSlots: req.body.totalSlots,
-      isPublic: req.body.isPublic,
-      status: req.body.status || 'upcoming',
+      isPublic: isPublic !== undefined ? isPublic : false,
+      status: status || 'pending',
       attendees: []
     });
 
@@ -193,29 +193,7 @@ export const getEventById = async (req, res) => {
 // Update an event
 export const updateEvent = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" });
-    }
-
-    // const organizer = await User.findById(event.org_ID);
-    // if (!organizer.isApproved) {
-    //   return res.status(403).json({ 
-    //     message: "You are not authorized to update events. Please wait for admin approval." 
-    //   });
-    // }
-
-    // Validate category ID if included in update
-    if (req.body.category && !mongoose.Types.ObjectId.isValid(req.body.category)) {
-      return res.status(400).json({ message: "Invalid category ID format" });
-    }
-
-    // Other validations remain the same...
     const updateData = { ...req.body };
-    if (updateData.event_name) updateData.event_name = updateData.event_name.trim();
-    if (updateData.description) updateData.description = updateData.description.trim();
-    if (updateData.location) updateData.location = updateData.location.trim();
-    if (updateData.tags) updateData.tags = updateData.tags.map(tag => tag.trim());
     
     const updatedEvent = await Event.findByIdAndUpdate(
       req.params.id,
@@ -226,9 +204,12 @@ export const updateEvent = async (req, res) => {
       }
     ).populate([
       { path: "org_ID", select: "username email" },
-      { path: "category" }, // Populate full category document
-      { path: "attendees", select: "username email" }
+      { path: "category", select: "categoryName" }
     ]);
+
+    if (!updatedEvent) {
+      return res.status(404).json({ message: "Event not found" });
+    }
 
     res.status(200).json(updatedEvent);
   } catch (error) {
@@ -240,40 +221,17 @@ export const updateEvent = async (req, res) => {
   }
 };
 
-// Delete method remains unchanged
 export const deleteEvent = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
-    if (!event) {
+    const deletedEvent = await Event.findByIdAndDelete(req.params.id);
+
+    if (!deletedEvent) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // Check if the event has already started or completed
-    if (event.status !== 'upcoming') {
-      return res.status(400).json({ 
-        message: "Cannot delete an event that has already started or completed" 
-      });
-    }
-
-    // Check if the organizer is still approved
-    // const organizer = await User.findById(event.org_ID);
-    // if (!organizer || !organizer.isApproved) {
-    //   return res.status(403).json({ 
-    //     message: "You are not authorized to delete events. Please contact admin." 
-    //   });
-    // }
-
-    // If there are attendees, you might want to notify them
-    if (event.attendees.length > 0) {
-      // Here you could add notification logic for attendees
-      console.log(`Event cancelled with ${event.attendees.length} attendees`);
-    }
-
-    await Event.findByIdAndDelete(req.params.id);
-    
     res.status(200).json({ 
-      message: "Event successfully deleted",
-      eventId: req.params.id
+      message: "Event deleted successfully",
+      deletedEvent 
     });
   } catch (error) {
     console.error(error);

@@ -1,15 +1,25 @@
-// backend/routes/notificationRoutes.js
+// routes/notification.routes.js
 import express from 'express';
-import { createNotification, getNotifications, markAsRead,sendResponseToOrganizer } from '../controller/notification.controller.js';
+import { authenticateUser } from '../middleware/authMiddleware.js';
+import { protectAdmin } from '../middleware/adminMiddleware.js';
+import { requestEventNotification, approveEventNotification, getUserNotifications, getAdminNotifications,markAsRead } from '../controller/notification.controller.js';
 
 const router = express.Router();
 
-// Route to create a new notification
-router.post("/createnotification", createNotification);
-// Route to fetch all notifications
-router.get("/getnotify", getNotifications);
-// Route to mark a notification as read
-router.patch("/:notificationId", markAsRead);
-router.post('/response', sendResponseToOrganizer);
+// Route to send event creation request notification to admin
+router.post('/request-event', authenticateUser, requestEventNotification);
 
-export default router;  // Default export of the router
+// Route to send approval notification to organizer
+router.post('/approve-event/:eventId', authenticateUser, protectAdmin, approveEventNotification);
+
+
+router.get('/admin-notifications', protectAdmin, getAdminNotifications);
+router.patch('/mark-read/:notificationId', markAsRead);
+
+// Route to fetch notifications for a user (Admin/Organizer)
+router.get('/notify',authenticateUser, getUserNotifications);
+
+
+
+
+export default router;

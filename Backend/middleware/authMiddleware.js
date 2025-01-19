@@ -1,7 +1,8 @@
+// authMiddleware.js
 import jwt from 'jsonwebtoken';
 import User from '../model/user.schema.js';
 
-export const protect = async (req, res, next) => {
+export const authenticateUser = async (req, res, next) => {
   let token;
 
   try {

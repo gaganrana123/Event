@@ -3,9 +3,9 @@ import bcryptjs from 'bcryptjs';
 import Role from '../model/role.schema.js';
 
 const users = [
-  { fullname: 'Admin', email: 'admin@example.com', password: 'admin123', role: 'Admin' },
-  { fullname: 'User', email: 'user@example.com', password: 'user123', role: 'User' },
-  { fullname: 'Organizer', email: 'organizer@example.com', password: 'organizer123', role: 'Organizer' }
+  { fullname: 'Admin', email: 'admin@gmail.com', password: 'admin123', role: 'Admin' },
+  { fullname: 'User', email: 'user@gmail.com', password: 'user123', role: 'User' },
+  { fullname: 'Organizer', email: 'organizer@gmail.com', password: 'organizer123', role: 'Organizer' }
 ];
 
 const seedUsers = async () => {

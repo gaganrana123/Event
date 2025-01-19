@@ -68,12 +68,12 @@ const eventSchema = new mongoose.Schema({
   },
   isPublic: {
     type: Boolean,
-    default: true
+    default: false
   },
   status: { 
     type: String, 
     enum: ['upcoming', 'ongoing', 'completed', 'cancelled', 'pending','approved','rejected'],
-    default: 'upcoming'
+    default: 'pending'
   }
 }, { timestamps: true });
 
